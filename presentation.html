@@ -1,0 +1,3463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOX 矩阵 × 理想案例 · ICC × 大众中国</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&family=Inter:wght@300;400;500;600;700;900&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  /* ════════ Design Tokens ════════ */
+  :root {
+    --paper: #F2EDE2;
+    --paper-deep: #E8E2D2;
+    --ink: #0A0A0A;
+    --ink-soft: #2A2A2A;
+    --ink-mute: #52504B;
+    --ink-faint: #7A756D;
+    --line: #D6D0C2;
+    --accent: #1F4A2C;          /* 理想品牌深绿 */
+    --accent-deep: #133320;
+    --accent-soft: rgba(31,74,44,0.08);
+    --crisis: #B5121B;
+    --gold: #9C7A2A;
+
+    --sans-cn: "Noto Sans SC", "PingFang SC", sans-serif;
+    --serif-cn: "Noto Serif SC", "Songti SC", serif;
+    --sans-en: "Inter", -apple-system, sans-serif;
+    --display-en: "Archivo Black", "Inter", sans-serif;
+
+    /* Spacing scale */
+    --gap-xs: 6px;
+    --gap-s: 12px;
+    --gap-m: 20px;
+    --gap-l: 32px;
+    --gap-xl: 48px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans-cn);
+    font-feature-settings: "tnum", "kern";
+    overflow: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.28;
+    mix-blend-mode: multiply;
+    pointer-events: none; z-index: 1;
+  }
+
+  /* ════════ Deck Container ════════ */
+  .deck {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    position: relative; z-index: 2;
+  }
+  .deck::-webkit-scrollbar { display: none; }
+
+  /* 屏的统一容器 - 三段式 */
+  .slide {
+    height: 100vh; width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    position: relative;
+    padding: 7vh 7vw 6vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "head"
+      "body"
+      "foot";
+    row-gap: 4vh;
+  }
+  .slide-head { grid-area: head; }
+  .slide-body { grid-area: body; min-height: 0; display: flex; flex-direction: column; }
+  .slide-foot { grid-area: foot; }
+  .p04 {
+    row-gap: 2.8vh;
+  }
+
+  /* 没有 head 或 foot 的屏 */
+  .slide.center {
+    grid-template-rows: 1fr;
+    grid-template-areas: "body";
+    align-items: center;
+    justify-items: center;
+  }
+
+  /* ════════ Top Nav & Bottom Bar ════════ */
+  .top-nav {
+    position: fixed; top: 3vh; left: 0; right: 0;
+    padding: 0 4vw;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 100; pointer-events: none;
+  }
+  .brand {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .brand sup { font-size: 8px; color: var(--accent); margin-left: 2px; }
+  .topic-pill {
+    background: var(--ink); color: var(--paper);
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+    border: none;
+    font-family: var(--sans-cn);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .topic-pill:hover { background: var(--accent); }
+  .slide-menu {
+    position: fixed;
+    top: 7vh;
+    right: 4vw;
+    z-index: 220;
+    width: min(360px, 88vw);
+    max-height: 78vh;
+    overflow-y: auto;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    box-shadow: 0 14px 50px rgba(10,10,10,0.22);
+    padding: 14px;
+    display: none;
+  }
+  .slide-menu.show { display: block; }
+  .slide-menu-title {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .slide-menu button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--line);
+    padding: 10px 4px;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--sans-cn);
+  }
+  .slide-menu button:hover {
+    background: var(--accent-soft);
+  }
+  .slide-menu .sm-num {
+    font-family: var(--display-en);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .slide-menu .sm-title {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .bottom-bar {
+    position: fixed; bottom: 3vh; left: 0; right: 0;
+    padding: 0 4vw;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 100; pointer-events: none;
+    font-family: var(--sans-en);
+    font-size: 11px; color: var(--ink-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .chapter-label {
+    font-family: var(--sans-cn);
+    text-transform: none; letter-spacing: 0.04em;
+    font-size: 11px; font-weight: 500; color: var(--ink-soft);
+  }
+  .chapter-label::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin-right: 8px;
+    vertical-align: middle;
+  }
+  .progress-counter strong { color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* ════════ 通用排版（4 级字号） ════════ */
+  .eyebrow {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--accent); opacity: 0.3; max-width: 100px;
+  }
+
+  .h-display {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .h-large {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: clamp(22px, 2.4vw, 32px);
+    line-height: 1.3;
+  }
+  .h-mid {
+    font-family: var(--sans-cn);
+    font-weight: 700;
+    font-size: clamp(15px, 1.4vw, 18px);
+    line-height: 1.4;
+  }
+  .body-text {
+    font-family: var(--sans-cn);
+    font-size: clamp(14px, 1.1vw, 16px);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .small-text {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink-mute);
+  }
+
+  .accent-green { color: var(--accent); }
+  .accent-red   { color: var(--crisis); }
+  em.hl {
+    font-style: normal;
+    background: linear-gradient(transparent 65%, rgba(31,74,44,0.22) 65%);
+  }
+
+  /* foot · 通用底部锚定区 */
+  .foot-bar {
+    border-top: 1px solid var(--ink);
+    padding-top: 2vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--gap-l);
+  }
+  .foot-quote {
+    font-family: var(--serif-cn); font-weight: 900;
+    font-size: clamp(16px, 1.7vw, 22px);
+    line-height: 1.4;
+    color: var(--accent);
+  }
+  .foot-side {
+    font-size: 13px;
+    color: var(--ink-mute);
+    line-height: 1.6;
+    max-width: 50%;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P01 楔子 */
+  /* ═══════════════════════════════════════════════════ */
+  .p01 .quote-mark {
+    width: clamp(92px, 8vw, 130px);
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 6vh;
+    opacity: 0.92;
+  }
+  .p01 .quote-body {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: clamp(36px, 4.4vw, 60px);
+    line-height: 1.4;
+    max-width: 64vw;
+    text-align: center;
+    margin-bottom: 5vh;
+  }
+  .p01 .quote-attr {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P02 立论 1 */
+  /* ═══════════════════════════════════════════════════ */
+  .p02 .reverse-quote {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(20px, 2.2vw, 30px);
+    line-height: 1.5;
+    margin-top: 1.6vh;
+    max-width: 70vw;
+    color: var(--ink);
+  }
+  .factor-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 2.5vw;
+    row-gap: 8px;
+    align-content: center;
+    flex: 1;
+    padding: 1vh 0;
+  }
+  .factor-item {
+    display: grid;
+    grid-template-columns: auto minmax(150px, 1fr) auto minmax(150px, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.18);
+  }
+  .factor-item .fi-num {
+    font-family: var(--display-en);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.18em;
+    width: 24px;
+  }
+  .factor-item .fi-name {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: clamp(16px, 1.4vw, 18px);
+    color: var(--ink);
+  }
+  .factor-item .fi-verb {
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    justify-self: center;
+    white-space: nowrap;
+  }
+  .factor-item .fi-result {
+    font-family: var(--sans-cn);
+    font-weight: 600;
+    font-size: clamp(16px, 1.4vw, 18px);
+    color: var(--accent);
+    line-height: 1.45;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P03 车企营销分析框架 */
+  /* ═══════════════════════════════════════════════════ */
+  .p03 .frame-board {
+    display: flex; flex-direction: column;
+    gap: var(--gap-l);
+    flex: 1;
+    justify-content: center;
+  }
+  .frame-section {
+    border: 1.5px solid var(--ink);
+    padding: 4vh 3.5vw 3vh;
+    background: rgba(255,255,255,0.35);
+    position: relative;
+  }
+  .frame-section .frame-label {
+    position: absolute; top: -11px; left: 24px;
+    background: var(--paper); padding: 0 14px;
+    font-family: var(--sans-en); font-size: 14px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .frame-cells {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-l);
+  }
+  .frame-cell .fc-letter {
+    font-family: var(--display-en);
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.2em;
+    margin-bottom: 6px;
+  }
+  .frame-cell .fc-name {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .frame-cell .fc-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .frame-section.fr-mov {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 2.5vh 3vw;
+    border-color: var(--ink);
+  }
+  .fr-mov .frame-label { color: var(--gold); background: var(--ink); }
+  .fr-mov .core-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(22px, 2.4vw, 30px);
+  }
+  .fr-mov .core-sub {
+    font-size: 14px;
+    color: rgba(242,237,226,0.9);
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+  .auto-framework {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2.4vw;
+    align-items: center;
+  }
+  .af-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .af-card {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 18px 20px;
+  }
+  .af-card .af-code {
+    font-family: var(--display-en);
+    color: var(--ink-faint);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    margin-bottom: 7px;
+  }
+  .af-card .af-title {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 19px;
+    margin-bottom: 5px;
+  }
+  .af-card .af-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-mute);
+  }
+  .af-center {
+    width: 26vw;
+    min-width: 280px;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4vh 2.6vw;
+    text-align: center;
+  }
+  .af-center .af-battle-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.6vh;
+  }
+  .af-center .af-battle-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(24px, 2.6vw, 36px);
+    line-height: 1.35;
+    margin-bottom: 1.6vh;
+  }
+  .af-center .af-battle-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(242,237,226,0.85);
+  }
+  .af-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-family: var(--display-en);
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    margin: 6px 0;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P04 理想 Summary */
+  /* ═══════════════════════════════════════════════════ */
+  .p04 .summary-grid {
+    display: grid;
+    grid-template-columns: 28% 1fr;
+    gap: 0;
+    flex: 1;
+    align-content: stretch;
+  }
+  .p04 .summary-grid > .lixiang-block {
+    padding-right: 3vw;
+    border-right: 2px solid var(--ink);
+  }
+  .p04 .summary-grid > .brand-block {
+    padding-left: 3vw;
+  }
+  .summary-col-label {
+    font-family: var(--sans-en);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 8px 12px;
+    border: 1.5px solid var(--accent);
+    margin-bottom: 16px;
+    display: inline-block;
+    background: var(--accent-soft);
+  }
+
+  /* 李想 */
+  .lixiang-block .person-row {
+    display: flex; flex-direction: column;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    gap: 4px;
+  }
+  .person-row .pr-key {
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .person-row .pr-val {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .person-row .pr-val strong { color: var(--ink); font-weight: 700; }
+  .person-row.feature {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-bottom: none;
+    margin: 8px -12px 0;
+    padding: 12px;
+  }
+  .person-row.feature .pr-val { font-weight: 600; color: var(--ink); }
+
+  /* 品牌 */
+  .brand-block {
+    display: flex; flex-direction: column;
+    gap: 2.4vh;
+  }
+  /* 财报数据 */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-m);
+  }
+  .stat-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+  }
+  .stat-card .sc-year {
+    font-family: var(--display-en);
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.18em;
+    margin-bottom: 8px;
+  }
+  .stat-card .sc-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .stat-card .sc-num {
+    font-family: var(--display-en);
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .stat-card .sc-num small {
+    font-family: var(--sans-cn);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ink-mute);
+    margin-left: 2px;
+  }
+  .stat-card .sc-label {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .stat-card.peak {
+    border: 2px solid var(--accent);
+    box-shadow: inset 0 0 0 3px rgba(31,74,44,0.06);
+  }
+  .stat-card.peak .sc-year { color: var(--accent); }
+
+  /* 产品时间线 */
+  .product-timeline {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 14px 18px;
+  }
+  .pt-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .pt-line {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .pt-pill {
+    padding: 5px 12px;
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-family: var(--sans-en);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pt-pill.key { background: var(--paper-deep); border-color: var(--accent); color: var(--accent); }
+  .pt-pill.crisis { background: var(--paper); color: var(--crisis); border: 1.5px solid var(--crisis); }
+  .pt-pill strong { font-family: var(--sans-cn); font-weight: 700; margin-right: 6px; }
+  .pt-arrow { color: var(--ink-faint); font-size: 13px; }
+
+  /* 销量曲线 */
+  .sales-chart {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 12px 18px 14px;
+  }
+  .line-chart {
+    height: 112px;
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .lc-svg {
+    width: 100%;
+    height: 72px;
+    overflow: visible;
+  }
+  .lc-labels {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .lc-label {
+    text-align: center;
+    font-family: var(--display-en);
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+  }
+  .lc-label strong {
+    display: block;
+    color: var(--ink);
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  /* 1+N+2X 概览 strip */
+  .summary-strip {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.35vh 2.5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--gap-l);
+  }
+  .strip-label {
+    font-family: var(--serif-cn); font-weight: 700;
+    font-size: 15px;
+    color: var(--paper);
+  }
+  .strip-key {
+    font-family: var(--display-en);
+    color: var(--gold);
+    font-size: 20px;
+    margin-right: 8px;
+    letter-spacing: 0.04em;
+  }
+  .strip-mini-chips {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .strip-mini-chip {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid rgba(242,237,226,0.5);
+    border-radius: 3px;
+    font-family: var(--display-en);
+    font-size: 12px;
+    color: var(--paper);
+    letter-spacing: 0.1em;
+  }
+  .strip-arrow {
+    font-size: 13px;
+    color: rgba(242,237,226,0.5);
+    margin: 0 4px;
+  }
+  .strip-hint {
+    font-size: 12px;
+    color: rgba(242,237,226,0.6);
+    font-style: italic;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P05 时间长河读图 */
+  /* ═══════════════════════════════════════════════════ */
+  .p05 .river-board {
+    flex: 1;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 3vh;
+    justify-content: stretch;
+  }
+  .river-layers {
+    display: grid;
+    grid-template-columns: 90px repeat(4, 1fr) 150px;
+    grid-template-rows: auto auto auto auto;
+    gap: 10px 9px;
+    align-items: stretch;
+    position: relative;
+  }
+  .river-head {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    text-align: center;
+    padding-bottom: 4px;
+  }
+  .river-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-right: 1px solid var(--line);
+    position: relative;
+  }
+  .river-label.ext-label::after {
+    content: '↓';
+    position: absolute;
+    right: 18px;
+    bottom: -19px;
+    color: #2A4866;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .river-label.battle-label {
+    color: var(--accent);
+    font-weight: 800;
+    border-right-color: var(--accent);
+  }
+  .river-label.int-label::after {
+    content: '↑';
+    position: absolute;
+    right: 18px;
+    top: -19px;
+    color: var(--gold);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .river-cell {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.32);
+    padding: 12px 14px;
+    min-height: 78px;
+    position: relative;
+  }
+  .river-cell::after {
+    content: '';
+    position: absolute;
+    top: 50%; right: -10px;
+    width: 10px; height: 1px;
+    background: var(--line);
+  }
+  .river-cell:nth-child(6n)::after,
+  .river-cell.result::after { display: none; }
+  .river-cell.ext { border-left: 3px solid #2A4866; }
+  .river-cell.battle {
+    border: 2px solid var(--accent);
+    border-left-width: 4px;
+    background: rgba(31,74,44,0.1);
+    box-shadow: 0 0 0 3px rgba(31,74,44,0.04);
+  }
+  .river-cell.int { border-left: 3px solid var(--gold); }
+  .river-cell.crown {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .river-cell .rc-title {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+  .river-cell .rc-desc {
+    font-size: 12px;
+    color: var(--ink-mute);
+    line-height: 1.6;
+  }
+  .river-cell.crown .rc-desc { color: rgba(242,237,226,0.78); }
+  .river-cell.result {
+    grid-row: 2 / span 3;
+    grid-column: 6;
+    border: 2px solid var(--accent);
+    background: var(--accent-soft);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .river-cell.result .rc-title {
+    font-family: var(--display-en);
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .reading-grammar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-l);
+  }
+  .grammar-card {
+    border: 1px solid var(--line);
+    padding: 18px;
+    background: var(--paper);
+  }
+  .grammar-card .gc-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .grammar-card .gc-title {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .grammar-card .gc-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .fate-legend {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .fate-dot {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: -1px;
+  }
+  .fate-dot.retained { background: var(--ink); }
+  .fate-dot.seed { background: rgba(31,74,44,0.18); border: 1px solid rgba(31,74,44,0.45); }
+  .fate-dot.new { background: var(--accent); }
+  .fate-dot.faded { background: var(--line); border: 1px dashed var(--ink-faint); }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P06-P09 阶段屏 (外部上 / 博弈中 / 内部下) */
+  /* ═══════════════════════════════════════════════════ */
+  .ph-head-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: var(--gap-l);
+  }
+  .ph-head-left .ph-num-line {
+    display: flex; align-items: baseline; gap: 18px;
+    margin-bottom: 4px;
+  }
+  .ph-head-left .ph-num {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+  }
+  .ph-head-left .ph-num.main { color: var(--accent); font-weight: 700; }
+  .ph-head-left .ph-year {
+    font-family: var(--display-en);
+    font-size: clamp(28px, 3.2vw, 40px);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .ph-head-left .ph-title {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: clamp(20px, 2vw, 26px);
+    margin-top: 4px;
+  }
+  .ph-head-right {
+    text-align: right;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 36vw;
+  }
+
+  /* 主体三段：外部 / 博弈 / 内部 */
+  .ph-stack {
+    flex: 1;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 2vh;
+    min-height: 0;
+  }
+  .ph-context-band {
+    border-left: 3px solid var(--accent);
+    padding: 1.4vh 1.4vw;
+    background: rgba(255,255,255,0.3);
+  }
+  .ph-context-band.ext { border-left-color: #2A4866; background: rgba(42,72,102,0.04); }
+  .ph-context-band.int { border-left-color: var(--gold); background: rgba(156,122,42,0.08); }
+  .ph-context-band .ctx-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .ph-context-band.ext .ctx-label { color: #2A4866; }
+  .ph-context-band.int .ctx-label { color: var(--gold); }
+  .ctx-cells {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-l);
+  }
+  .ctx-cell .cc-name {
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .ctx-cell .cc-content {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .ctx-cell .cc-content strong { color: var(--ink); font-weight: 700; }
+  .ctx-cell.clickable {
+    cursor: pointer;
+    padding: 4px;
+    margin: -4px;
+    border-radius: 3px;
+    transition: background 0.2s;
+  }
+  .ctx-cell.clickable:hover {
+    background: rgba(31,74,44,0.08);
+  }
+  .ctx-cell .clickable-tag {
+    display: inline-block;
+    font-family: var(--sans-en);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    background: var(--paper);
+    border: 1px solid var(--accent);
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* 博弈动作区：时间长河 + 星图节点 */
+  .ph-puzzle-zone {
+    border: 2px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 1.6vh 1.6vw 1.4vh;
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .ph-puzzle-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .ph-puzzle-head .pp-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .ph-puzzle-head .pp-counter {
+    font-family: var(--display-en);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+  }
+  .ph-puzzle-head .pp-counter strong {
+    font-size: 22px;
+    margin-right: 2px;
+  }
+
+  .battle-field {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 8px;
+    align-content: stretch;
+  }
+  .bf-node {
+    min-width: 0;
+    border-radius: 6px;
+    border: 1.5px solid var(--line);
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bf-node .bn-state {
+    font-family: var(--display-en);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.78;
+    white-space: nowrap;
+  }
+  .bf-node .bn-code {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    margin-bottom: 2px;
+    white-space: nowrap;
+  }
+  .bf-node .bn-name {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .bf-node .bn-desc {
+    font-size: 11px;
+    line-height: 1.38;
+    margin-top: 3px;
+  }
+  .bf-node.tactical {
+    background: var(--paper-deep);
+    color: var(--ink-mute);
+    border: 1.5px dashed var(--ink-faint);
+  }
+  .bf-node.seed {
+    background: rgba(31,74,44,0.12);
+    border-color: rgba(31,74,44,0.35);
+    color: var(--accent-deep);
+  }
+  .bf-node.growing {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent-deep);
+  }
+  .bf-node.mature {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .bn-highlight {
+    color: var(--gold);
+    font-weight: 800;
+  }
+  .bf-node.seed .bn-highlight {
+    color: var(--accent-deep);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .bf-node.growing .bn-code,
+  .bf-node.mature .bn-code { color: var(--gold); }
+  .bf-node.growing .bn-desc,
+  .bf-node.mature .bn-desc { color: rgba(242,237,226,0.86); }
+  .bf-node.clickable { cursor: pointer; }
+  .bf-node.clickable:hover { transform: translateY(-2px); }
+  .storm-battle .battle-field {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 7px;
+  }
+  .storm-battle .bf-node {
+    padding: 8px 9px;
+  }
+  .storm-battle .bf-node .bn-state {
+    font-size: 8px;
+    margin-bottom: 3px;
+  }
+  .storm-battle .bf-node .bn-code {
+    font-size: 11px;
+  }
+  .storm-battle .bf-node .bn-name {
+    font-size: 12px;
+  }
+  .storm-battle .bf-node .bn-desc {
+    font-size: 10px;
+    line-height: 1.32;
+  }
+
+  .puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: var(--gap-s);
+    flex: 1;
+    min-height: 0;
+  }
+  .puzzle-piece {
+    background: var(--paper);
+    border: 1.5px dashed var(--ink-faint);
+    border-radius: 4px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; justify-content: center;
+    text-align: center;
+    color: var(--ink-faint);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .puzzle-piece .pp-role {
+    font-family: var(--display-en);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+  .puzzle-piece .pp-name {
+    font-family: var(--sans-cn);
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  .puzzle-piece .pp-detail {
+    font-size: 11px;
+    margin-top: 5px;
+    color: var(--ink-faint);
+    line-height: 1.45;
+  }
+  .puzzle-piece.lit {
+    background: var(--ink);
+    border: 1.5px solid var(--ink);
+    color: var(--paper);
+  }
+  .puzzle-piece.lit .pp-role { color: var(--gold); }
+  .puzzle-piece.lit .pp-detail { color: rgba(242,237,226,0.88); }
+
+  .puzzle-piece.new {
+    background: var(--accent);
+    border: 2px solid var(--accent-deep);
+    color: var(--paper);
+    box-shadow: 0 0 0 3px rgba(31,74,44,0.18);
+  }
+  .puzzle-piece.new .pp-role { color: var(--gold); }
+  .puzzle-piece.new::after {
+    content: '✦ NEW';
+    position: absolute;
+    top: 5px; right: 6px;
+    font-family: var(--display-en);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  .puzzle-piece.new .pp-detail { color: rgba(242,237,226,0.92); }
+  .puzzle-piece.clickable { cursor: pointer; }
+  .puzzle-piece.clickable:hover { transform: scale(1.03); }
+
+  /* 阶段结果 (foot 区) */
+  .ph-foot-results {
+    display: flex; flex-wrap: wrap;
+    gap: 24px;
+    align-items: baseline;
+    padding: 14px 18px;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .ph-foot-results .res-num {
+    font-family: var(--display-en);
+    font-size: 18px;
+    margin-right: 4px;
+    color: var(--gold);
+  }
+  .ph-foot-results .res-item {
+    font-size: 13px;
+  }
+  .ph-foot-results .res-divider {
+    width: 1px; height: 18px;
+    background: rgba(242,237,226,0.3);
+  }
+  /* ═══════════════════════════════════════════════════ */
+  /* P09 1+N+2X 结果页 */
+  /* ═══════════════════════════════════════════════════ */
+  .p09 .result-frame {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2.4vh;
+  }
+  .result-puzzle {
+    width: 84vw; max-width: 1100px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 14px;
+  }
+  .result-puzzle .puzzle-piece {
+    padding: 18px 20px;
+    aspect-ratio: 1.5;
+  }
+  .result-puzzle .puzzle-piece.clickable {
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  }
+  .result-puzzle .puzzle-piece.clickable:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold);
+    box-shadow: 0 12px 30px rgba(10,10,10,0.22);
+  }
+  .result-puzzle .puzzle-piece.clickable::after {
+    content: '↗';
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    color: var(--gold);
+    font-family: var(--display-en);
+    font-size: 12px;
+  }
+  .result-puzzle .puzzle-piece .pp-role { font-size: 18px; }
+  .result-puzzle .puzzle-piece .pp-name { font-size: 14px; }
+  .result-puzzle .puzzle-piece .pp-detail { font-size: 12px; line-height: 1.5; }
+  .result-tier-tags {
+    display: flex; gap: var(--gap-xl);
+    font-family: var(--display-en);
+    color: var(--accent);
+    font-size: 15px; letter-spacing: 0.18em;
+  }
+  .result-tier-tags span small {
+    display: block; font-family: var(--sans-cn); font-size: 12px;
+    color: var(--ink-mute); margin-top: 4px;
+    letter-spacing: normal; text-transform: none;
+    font-weight: 400;
+  }
+  .result-caption {
+    text-align: center;
+    font-family: var(--serif-cn); font-weight: 700;
+    font-size: clamp(22px, 2.6vw, 34px);
+    line-height: 1.38;
+    max-width: 76vw;
+    margin: 0 auto 2vh;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P11 道法术器 */
+  /* ═══════════════════════════════════════════════════ */
+  .tao-grid {
+    display: grid;
+    grid-template-columns: 0.8fr 1.65fr;
+    gap: 2.6vw;
+    flex: 1;
+    align-items: stretch;
+  }
+  .tao-thesis {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4vh 3vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 5px solid var(--gold);
+  }
+  .tao-thesis .tt-label {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    margin-bottom: 1.4vh;
+  }
+  .tao-thesis .tt-main {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(24px, 2.45vw, 36px);
+    line-height: 1.35;
+  }
+  .tao-thesis .tt-question {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(242,237,226,0.74);
+    margin-bottom: 1vh;
+  }
+  .tao-thesis .tt-desc {
+    font-size: 15.5px;
+    line-height: 1.75;
+    color: var(--paper);
+    margin-top: 3vh;
+    padding: 18px 20px;
+    border: 2px solid var(--gold);
+    background: rgba(242,237,226,0.08);
+  }
+  .tao-thesis .tt-desc strong { color: var(--gold); }
+  .tao-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .tao-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .tao-card.highlight {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .tao-card .tc-kicker {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .tao-card .tc-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 23px;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .tao-card .tc-desc {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .tao-card .tc-desc strong { color: var(--ink); }
+  .tao-close {
+    margin-top: 2.4vh;
+    text-align: center;
+    font-family: var(--serif-cn);
+    font-weight: 800;
+    font-size: clamp(18px, 2vw, 26px);
+    line-height: 1.45;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P10 KOX 理论 */
+  /* ═══════════════════════════════════════════════════ */
+  .p10 .kox-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 5vw;
+    flex: 1;
+    align-content: center;
+  }
+  .kox-grid .kg-label {
+    font-family: var(--sans-en); font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    font-weight: 700; color: var(--ink-mute);
+    margin-bottom: 2vh;
+  }
+  .pyramid {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px;
+  }
+  .pyramid-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--ink); color: var(--paper);
+    border: 1px solid var(--ink);
+    width: 100%;
+  }
+  .pyramid-row[data-tier="1"] { width: 36%; background: var(--accent); border-color: var(--accent-deep); }
+  .pyramid-row[data-tier="2"] { width: 50%; }
+  .pyramid-row[data-tier="3"] { width: 64%; }
+  .pyramid-row[data-tier="4"] { width: 78%; }
+  .pyramid-row[data-tier="5"] { width: 92%; }
+  .pyramid-row[data-tier="6"] { width: 100%; background: var(--paper-deep); color: var(--ink); border-color: var(--ink); }
+  .pyramid-row .role-badge { font-family: var(--display-en); font-size: 13px; letter-spacing: 0.12em; }
+  .pyramid-row .role-name { font-family: var(--sans-cn); font-size: 13px; margin-left: 14px; }
+  .pyramid-row .role-fn { font-size: 12px; opacity: 0.8; margin-left: auto; }
+  .pyramid-caption {
+    text-align: center;
+    margin-top: 2vh;
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+  .kox-misuses { display: flex; flex-direction: column; gap: 1.6vh; }
+  .misuse-card {
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+    background: var(--paper);
+    border-left: 3px solid var(--crisis);
+  }
+  .misuse-card .mu-num {
+    font-family: var(--display-en); font-size: 11px;
+    color: var(--crisis); letter-spacing: 0.18em;
+  }
+  .misuse-card .mu-title {
+    font-weight: 700; font-size: 14px;
+    margin: 4px 0 6px;
+  }
+  .misuse-card .mu-desc {
+    font-size: 13px; color: var(--ink-mute); line-height: 1.65;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P11 大众镜照 */
+  /* ═══════════════════════════════════════════════════ */
+  .p11 .mirror-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4vw;
+    flex: 1;
+    align-content: center;
+  }
+  .mirror-col-label {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 1.6vh;
+  }
+  .ext-summary {
+    display: flex; flex-direction: column; gap: 1.6vh;
+  }
+  .ext-summary-block {
+    border-left: 3px solid var(--accent);
+    padding: 12px 18px;
+    background: var(--paper);
+  }
+  .ext-summary-block .es-label {
+    font-family: var(--sans-en); font-size: 12px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 6px;
+  }
+  .ext-summary-block .es-title {
+    font-weight: 700; font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .ext-summary-block ul {
+    list-style: none; padding-left: 0;
+    font-size: 13px; line-height: 1.75;
+    color: var(--ink-soft);
+  }
+  .ext-summary-block li {
+    padding-left: 14px;
+    position: relative;
+  }
+  .ext-summary-block li::before {
+    content: '·';
+    position: absolute; left: 4px;
+    color: var(--ink-mute);
+    font-weight: 900;
+  }
+  .int-blank {
+    border: 2px dashed var(--ink-faint);
+    padding: 4vh 2vw;
+    display: flex; flex-direction: column; gap: 1.4vh;
+    background: rgba(255,255,255,0.2);
+    position: relative;
+    height: 100%;
+  }
+  .int-blank::before {
+    content: 'TO BE FILLED BY YOU';
+    position: absolute; top: -10px; left: 24px;
+    background: var(--paper); padding: 0 12px;
+    font-family: var(--sans-en); font-size: 11px;
+    letter-spacing: 0.2em; color: var(--ink-faint);
+  }
+  .int-blank-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px;
+    border: 1px solid var(--ink-faint);
+    background: rgba(255,255,255,0.5);
+  }
+  .int-blank-row .ib-label { font-weight: 700; font-size: 14px; color: var(--ink-soft); }
+  .int-blank-row .ib-q {
+    font-family: "Charter", Georgia, serif;
+    font-size: 30px;
+    color: var(--accent); font-weight: 700;
+  }
+  .int-blank-quote {
+    margin-top: 1.4vh; text-align: center;
+    font-family: var(--serif-cn); font-style: italic;
+    font-size: 14px; color: var(--ink-mute); line-height: 1.6;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P12 AI 金矿机会 */
+  /* ═══════════════════════════════════════════════════ */
+  .ai-opportunity {
+    display: grid;
+    grid-template-columns: 0.92fr 1.28fr;
+    gap: 2.8vw;
+    flex: 1;
+    align-items: stretch;
+  }
+  .ai-env-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ai-env-card {
+    background: var(--paper);
+    border-left: 3px solid var(--accent);
+    padding: 16px 18px;
+  }
+  .ai-env-card .aec-label {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .ai-env-card .aec-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .ai-env-card .aec-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .goldmine-panel {
+    background: var(--paper-deep);
+    color: var(--ink);
+    padding: 2.2vh 2.4vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 2px solid var(--accent);
+    box-shadow: 0 14px 36px rgba(10,10,10,0.08);
+  }
+  .goldmine-panel .gm-kicker {
+    font-family: var(--display-en);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    margin-bottom: 0.9vh;
+  }
+  .goldmine-panel .gm-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(23px, 2.35vw, 34px);
+    line-height: 1.22;
+  }
+  .goldmine-panel .gm-title strong {
+    color: var(--accent);
+    font-weight: 900;
+  }
+  .goldmine-panel .gm-desc {
+    margin-top: 1.4vh;
+    color: var(--ink-soft);
+    font-size: 13px;
+    line-height: 1.65;
+    max-width: 92%;
+  }
+  .gm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--line);
+    margin: 1.7vh 0;
+    background: var(--paper);
+  }
+  .gm-stat {
+    padding: 13px 12px;
+    text-align: center;
+    border-right: 1px solid var(--line);
+  }
+  .gm-stat:last-child { border-right: none; }
+  .gm-stat strong {
+    display: block;
+    font-family: var(--display-en);
+    font-size: 24px;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .gm-stat span {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .gm-close {
+    background: var(--ink);
+    color: var(--paper);
+    border-left: 4px solid var(--gold);
+    padding: 12px 16px 12px 18px;
+    font-family: var(--serif-cn);
+    font-weight: 800;
+    font-size: clamp(16px, 1.55vw, 22px);
+    line-height: 1.45;
+  }
+  .gm-close em {
+    color: var(--gold);
+    font-style: normal;
+  }
+  .gm-product-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 7px 12px;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .gm-product-link:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P12 留白结尾 */
+  /* ═══════════════════════════════════════════════════ */
+  .p12 .end-quote {
+    font-family: var(--serif-cn); font-weight: 900;
+    font-size: clamp(32px, 3.35vw, 48px);
+    line-height: 1.4;
+    max-width: 82vw;
+    margin-bottom: 5vh;
+    text-align: center;
+  }
+  .p12 .end-line {
+    font-family: var(--sans-cn); font-size: 14px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+    max-width: 50vw;
+    text-align: center;
+  }
+  .ending-signature {
+    margin-top: 3vh;
+    font-family: var(--serif-cn);
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: 0.08em;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P13 预言机彩蛋 */
+  /* ═══════════════════════════════════════════════════ */
+  .p13 .oracle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap-s);
+    flex: 1;
+    align-content: center;
+  }
+  .oracle-tile {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    padding: 14px 14px;
+    text-align: center;
+    display: flex; flex-direction: column; justify-content: center;
+    aspect-ratio: 1.4;
+  }
+  .oracle-tile .ot-num {
+    font-family: var(--display-en); font-size: 13px;
+    color: var(--accent); letter-spacing: 0.16em;
+  }
+  .oracle-tile .ot-name { font-weight: 700; font-size: 14px; margin: 6px 0 4px; }
+  .oracle-tile .ot-sub { font-size: 12px; color: var(--ink-mute); }
+  .oracle-tile.highlight { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .oracle-tile.highlight .ot-num { color: var(--gold); }
+  .oracle-tile.highlight .ot-sub { color: rgba(242,237,226,0.85); }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* P14 Thank You */
+  /* ═══════════════════════════════════════════════════ */
+  .p14 .ty-mark {
+    font-family: var(--display-en);
+    font-size: clamp(80px, 12vw, 180px);
+    color: var(--ink); line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .p14 .ty-cn {
+    font-family: var(--serif-cn); font-weight: 700;
+    font-size: 22px; margin-top: 2vh; color: var(--ink-soft);
+  }
+  .p14 .ty-meta {
+    margin-top: 5vh;
+    font-family: var(--sans-en); font-size: 12px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .ty-source {
+    margin-top: 2.4vh;
+    font-size: 12px;
+    color: var(--ink-faint);
+    max-width: 60vw; line-height: 1.7;
+    text-align: center;
+  }
+
+  /* ═══════════════════════════════════════════════════ */
+  /* Modal */
+  /* ═══════════════════════════════════════════════════ */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,10,10,0.7);
+    z-index: 200;
+    display: none;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    padding: 5vh 5vw;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-window {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    width: 100%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 5vh 4vw;
+    position: relative;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.4);
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: none; border: none;
+    font-family: var(--display-en);
+    font-size: 22px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { background: var(--ink); color: var(--paper); }
+  .modal-eyebrow {
+    font-family: var(--sans-en);
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .modal-title {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: clamp(24px, 2.6vw, 36px);
+    margin-bottom: 2.4vh;
+    line-height: 1.3;
+  }
+  .modal-body { font-size: 14px; line-height: 1.7; }
+  .kox-modal-lead {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--gold);
+  }
+  .kox-modal-lead strong {
+    color: var(--gold);
+    font-family: var(--display-en);
+    letter-spacing: 0.12em;
+    margin-right: 8px;
+  }
+  .kox-proof-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .kox-proof-grid.single-proof {
+    grid-template-columns: minmax(360px, 0.72fr);
+    justify-content: center;
+  }
+  .kox-proof-slot {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .kox-proof-slot img {
+    display: block;
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .kox-proof-caption {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--paper-deep);
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .kox-proof-caption strong {
+    color: var(--accent);
+    font-family: var(--display-en);
+    letter-spacing: 0.08em;
+    margin-right: 5px;
+  }
+  .kox-proof-caption a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 700;
+  }
+  .kox-proof-placeholder {
+    text-align: center;
+    color: var(--ink-mute);
+    padding: 28px;
+  }
+  .kox-proof-placeholder .kp-code {
+    font-family: var(--display-en);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .kox-proof-placeholder .kp-desc {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .kol-chart-wrap {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    padding: 16px 18px;
+  }
+  .kol-chart-title {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .kol-bar {
+    display: grid;
+    grid-template-columns: 94px 1fr 34px;
+    gap: 10px;
+    align-items: center;
+    margin: 8px 0;
+    font-size: 12px;
+  }
+  .kol-bar-label {
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .kol-bar-track {
+    height: 12px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .kol-bar-fill {
+    height: 100%;
+    background: var(--accent);
+  }
+  .kol-bar-count {
+    font-family: var(--display-en);
+    color: var(--accent);
+    text-align: right;
+  }
+  .kol-insight {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border-left: 4px solid var(--gold);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .kol-insight strong {
+    color: var(--gold);
+  }
+
+  /* 弹窗：组织架构 */
+  .org-chart {
+    border: 1px solid var(--line);
+    background: var(--paper-deep);
+    padding: 3vh 3vw;
+    margin: 2vh 0;
+  }
+  .org-top {
+    text-align: center;
+    padding: 10px 18px;
+    background: var(--ink); color: var(--paper);
+    margin: 0 auto 18px;
+    max-width: 320px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .org-top small {
+    display: block; font-family: var(--sans-en);
+    font-size: 11px; color: var(--gold);
+    letter-spacing: 0.18em; margin-top: 4px;
+  }
+  .org-arrow { text-align: center; color: var(--ink-mute); font-size: 14px; margin: 8px 0; }
+  .org-brand-node {
+    text-align: center;
+    padding: 10px 18px;
+    background: var(--accent); color: var(--paper);
+    margin: 0 auto 16px;
+    max-width: 180px;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1px solid var(--accent-deep);
+  }
+  .org-departments {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .org-dept {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .org-dept.crown {
+    background: var(--accent); color: var(--paper); border-color: var(--accent-deep);
+  }
+  .org-dept .dept-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-weight: 400;
+    margin-top: 4px;
+  }
+  .org-dept.crown .dept-sub { color: rgba(242,237,226,0.85); }
+  .org-focus-branches {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .org-branch {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 14px 16px;
+  }
+  .org-branch-title {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .org-branch-title strong {
+    font-family: var(--serif-cn);
+    font-size: 15px;
+    letter-spacing: 0;
+    color: var(--ink);
+    text-transform: none;
+    margin-left: 6px;
+  }
+  .org-subgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .org-subitem {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .reverse-design {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 2vh;
+  }
+  .rd-card {
+    background: var(--paper-deep);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+  }
+  .rd-card .rd-num {
+    font-family: var(--display-en); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.18em;
+  }
+  .rd-card .rd-title {
+    font-weight: 700; font-size: 14px;
+    margin: 4px 0 6px;
+  }
+  .rd-card .rd-desc {
+    font-size: 13px; color: var(--ink-mute); line-height: 1.6;
+  }
+
+  /* 弹窗：OKR 表格 */
+  .okr-principles {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 1.6vh 0 2vh;
+  }
+  .okr-principle {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 12px 14px;
+    min-height: 102px;
+  }
+  .okr-principle .op-num {
+    font-family: var(--display-en);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .okr-principle .op-text {
+    font-size: 12px;
+    line-height: 1.55;
+    font-weight: 600;
+  }
+  .okr-annual {
+    display: grid;
+    grid-template-columns: 1.1fr 1.6fr;
+    gap: 14px;
+    margin: 1.8vh 0;
+  }
+  .okr-goal {
+    background: var(--paper-deep);
+    border-left: 4px solid var(--accent);
+    padding: 16px 18px;
+  }
+  .okr-goal .og-kicker {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .okr-goal .og-title {
+    font-family: var(--serif-cn);
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .okr-goal .og-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .okr-funnel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 14px 16px;
+  }
+  .okr-funnel-title {
+    font-family: var(--display-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .okr-funnel-track {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+  .okr-funnel-item {
+    position: relative;
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    padding: 12px 10px 10px;
+    text-align: center;
+  }
+  .okr-funnel-item:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    right: -9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-family: var(--display-en);
+    font-size: 13px;
+    z-index: 2;
+  }
+  .okr-funnel-item strong {
+    display: block;
+    font-family: var(--display-en);
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .okr-funnel-item span {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+  .okr-funnel-item em {
+    display: block;
+    font-style: normal;
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    line-height: 1.35;
+  }
+  .okr-section-title {
+    font-family: var(--serif-cn);
+    font-weight: 800;
+    font-size: 17px;
+    margin: 2vh 0 0.8vh;
+  }
+  .okr-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 2vh 0;
+    font-size: 13px;
+  }
+  .okr-table th {
+    background: var(--ink); color: var(--paper);
+    padding: 12px 16px; text-align: left;
+    font-family: var(--sans-en); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 700;
+  }
+  .okr-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .okr-table tr:nth-child(even) td {
+    background: rgba(31,74,44,0.04);
+  }
+  .okr-table .okr-dept {
+    font-family: var(--serif-cn); font-weight: 700;
+    color: var(--accent);
+    width: 130px;
+  }
+  .okr-table .okr-content { color: var(--ink-soft); }
+  .okr-table .okr-content strong { color: var(--ink); }
+
+  /* 弹窗：KOS */
+  .kos-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 2vh 0;
+  }
+  .kos-card {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    padding: 16px 18px;
+  }
+  .kos-card .kc-num {
+    font-family: var(--display-en); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.18em;
+    margin-bottom: 6px;
+  }
+  .kos-card .kc-title { font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+  .kos-card .kc-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .kos-card .kc-desc strong { color: var(--accent); }
+  .kos-quote {
+    margin-top: 2vh;
+    padding: 1.6vh 2vw;
+    background: var(--ink); color: var(--paper);
+    font-family: var(--serif-cn); font-weight: 700;
+    font-size: 14px; line-height: 1.7;
+    border-left: 4px solid var(--gold);
+  }
+  .kos-proof {
+    margin-top: 2vh;
+    border: 1px solid var(--line);
+    background: var(--paper-deep);
+    padding: 14px 16px 16px;
+  }
+  .kos-proof .kp-label {
+    font-family: var(--sans-en);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .kos-proof img {
+    display: block;
+    width: 100%;
+    object-fit: contain;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand">ICC<sup>×</sup> 大众中国</div>
+  <button class="topic-pill" id="menuToggle" type="button">KOX 矩阵 × 理想案例</button>
+</div>
+
+<div class="slide-menu" id="slideMenu" aria-label="页面目录">
+  <div class="slide-menu-title">Deck Navigation</div>
+</div>
+
+<div class="bottom-bar">
+  <div class="chapter-label" id="chapterLabel">楔子</div>
+  <div class="progress-counter"><strong id="cur">01</strong> <span style="opacity:.5;margin:0 6px;">／</span> <span>13</span></div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- ════ P01 楔子 ════ -->
+  <section class="slide center p01" data-chapter="楔子">
+    <div class="slide-body" style="align-items:center;justify-content:center;text-align:center;">
+      <img class="quote-mark" src="assets/理想 logo.webp" alt="理想汽车 logo">
+      <div class="quote-body">
+        “理想是中国汽车品牌里<br>
+        为数不多<span class="accent-green">已经把品牌立住了</span>的。”
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P02 立论 1 ════ -->
+  <section class="slide p02" data-chapter="立论 · 营销是最后一公里">
+    <div class="slide-head">
+      <div class="eyebrow">P 02 · 立论</div>
+      <h1 class="h-display">营销是<span class="accent-green">最后</span>一公里。</h1>
+      <p class="reverse-quote" style="margin-top:2.4vh;">
+        把<em class="hl">产品卖出去</em>，是营销的本质。<br>
+        但"<em class="hl">能不能卖出去</em>"——从来不是营销自己决定的。
+      </p>
+    </div>
+
+    <div class="slide-body">
+      <div class="factor-list">
+        <div class="factor-item"><span class="fi-num">01</span><span class="fi-name">宏观经济环境</span><span class="fi-verb">decides</span><span class="fi-result">消费市场的天花板</span></div>
+        <div class="factor-item"><span class="fi-num">02</span><span class="fi-name">消费文化</span><span class="fi-verb">sets</span><span class="fi-result">说服成立的前提</span></div>
+        <div class="factor-item"><span class="fi-num">03</span><span class="fi-name">消费者行为</span><span class="fi-verb">draws</span><span class="fi-result">营销作战地图</span></div>
+        <div class="factor-item"><span class="fi-num">04</span><span class="fi-name">技术基础设施</span><span class="fi-verb">changes</span><span class="fi-result">内容生产与分发成本</span></div>
+        <div class="factor-item"><span class="fi-num">05</span><span class="fi-name">数据基础设施</span><span class="fi-verb">defines</span><span class="fi-result">精准运营的上限</span></div>
+        <div class="factor-item"><span class="fi-num">06</span><span class="fi-name">平台生态</span><span class="fi-verb">rewrites</span><span class="fi-result">流量分发的游戏规则</span></div>
+        <div class="factor-item"><span class="fi-num">07</span><span class="fi-name">竞争格局</span><span class="fi-verb">shapes</span><span class="fi-result">品牌必须进入的战场</span></div>
+        <div class="factor-item"><span class="fi-num">08</span><span class="fi-name">品牌方自身（产品/组织）</span><span class="fi-verb">provides</span><span class="fi-result">弹药库与作战产能</span></div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="foot-bar">
+        <div class="foot-side">
+          8 条决定因素，<em class="hl">不是独立的</em>——交叉、传导，最终汇聚到同一个出口。
+        </div>
+        <div class="foot-quote">
+          只盯营销动作本身看，一定误判。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P03 车企营销分析框架 ════ -->
+  <section class="slide p03" data-chapter="立论 · 车企营销框架">
+    <div class="slide-head">
+      <div class="eyebrow">P 03 · 立论 · 落到一个汽车品牌</div>
+      <h1 class="h-display">看车企营销结果，<br>不能只看<span class="accent-green">营销动作</span>。</h1>
+    </div>
+
+    <div class="slide-body">
+      <div class="auto-framework">
+        <div class="af-side">
+          <div class="af-card">
+            <div class="af-code">EXTERNAL A</div>
+            <div class="af-title">宏观 / 需求</div>
+            <div class="af-desc">政策周期、价格段、能源路线、家庭/换购需求，决定市场窗口是否打开。</div>
+          </div>
+          <div class="af-card">
+            <div class="af-code">EXTERNAL B</div>
+            <div class="af-title">平台生态</div>
+            <div class="af-desc">微博、B 站、抖音、小红书、视频号，各自的红利期和分发机制不同。</div>
+          </div>
+          <div class="af-card">
+            <div class="af-code">EXTERNAL C</div>
+            <div class="af-title">竞争格局</div>
+            <div class="af-desc">对手产品、价格战、技术叙事和 KOX 玩法，会改变同一动作的有效性。</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="af-arrow">EXTERNAL ↓</div>
+          <div class="af-center">
+            <div class="af-battle-label">Battle Interface</div>
+            <div class="af-battle-title">营销博弈的考卷</div>
+            <div class="af-battle-desc">
+              车企最后交出来的营销动作，不是单点创意，而是外部环境和内部能力夹击后的结果。
+            </div>
+          </div>
+          <div class="af-arrow">INTERNAL ↑</div>
+        </div>
+
+        <div class="af-side">
+          <div class="af-card">
+            <div class="af-code">INTERNAL D</div>
+            <div class="af-title">产品 / 品牌</div>
+            <div class="af-desc">产品矩阵、品牌叙事、价格锚点，决定营销有没有弹药。</div>
+          </div>
+          <div class="af-card">
+            <div class="af-code">INTERNAL E</div>
+            <div class="af-title">组织 / 流程</div>
+            <div class="af-desc">品牌部怎么放、谁背业务指标、KOS 放在哪，决定动作能不能落地。</div>
+          </div>
+          <div class="af-card">
+            <div class="af-code">INTERNAL F</div>
+            <div class="af-title">数据 / 运营</div>
+            <div class="af-desc">OKR、平台 CPM、线索、CPS 和漏斗系统，决定动作能不能被复盘和放大。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P04 理想 Summary ════ -->
+  <section class="slide p04" data-chapter="理想 · 11 年">
+    <div class="slide-head">
+      <div class="eyebrow">P 04 · 今天讨论的对象</div>
+      <h1 class="h-display">理想：<span class="accent-green">李想</span> + 品牌 + <span class="accent-green">1+N+2X</span> 矩阵。</h1>
+    </div>
+
+    <div class="slide-body">
+      <div class="summary-grid">
+        <!-- 李想 -->
+        <div class="lixiang-block">
+          <div class="summary-col-label">李想 · CREATOR</div>
+          <div class="person-row">
+            <span class="pr-key">DOB</span>
+            <span class="pr-val">1981 · 河北石家庄</span>
+          </div>
+          <div class="person-row">
+            <span class="pr-key">Path</span>
+            <span class="pr-val">泡泡网 → 汽车之家 → <strong>理想</strong>（第三次创业）</span>
+          </div>
+          <div class="person-row">
+            <span class="pr-key">IP</span>
+            <span class="pr-val">微博 215 万粉 · 长期高频高质输出 · 多平台覆盖</span>
+          </div>
+          <div class="person-row">
+            <span class="pr-key">Style</span>
+            <span class="pr-val"><strong>敢说 + 愿意说</strong> · 高频对比表 · 公开方法论</span>
+          </div>
+          <div class="person-row feature">
+            <span class="pr-key">Course</span>
+            <span class="pr-val">得到 APP《李想·产品实战 16 讲》<br>23.8 上线 · 99 元 · 3 万+ 付费</span>
+          </div>
+        </div>
+
+        <!-- 品牌 -->
+        <div class="brand-block">
+          <div class="summary-col-label">理想汽车 · BRAND</div>
+
+          <!-- 财报 -->
+          <div class="stats-row">
+            <div class="stat-card peak">
+              <div class="sc-year">2023 · 体系成型年</div>
+              <div class="sc-row">
+                <div>
+                  <div class="sc-num">37.6<small>万</small></div>
+                  <div class="sc-label">交付</div>
+                </div>
+                <div>
+                  <div class="sc-num">1238<small>亿</small></div>
+                  <div class="sc-label">营收</div>
+                </div>
+                <div>
+                  <div class="sc-num">22.2<small>%</small></div>
+                  <div class="sc-label">毛利率</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-year">2024</div>
+              <div class="sc-row">
+                <div>
+                  <div class="sc-num">50.05<small>万</small></div>
+                  <div class="sc-label">交付 +33%</div>
+                </div>
+                <div>
+                  <div class="sc-num">1445<small>亿</small></div>
+                  <div class="sc-label">营收</div>
+                </div>
+                <div>
+                  <div class="sc-num">20.5<small>%</small></div>
+                  <div class="sc-label">毛利率</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-year">2025</div>
+              <div class="sc-row">
+                <div>
+                  <div class="sc-num">40.63<small>万</small></div>
+                  <div class="sc-label">交付 -19%</div>
+                </div>
+                <div>
+                  <div class="sc-num">1123<small>亿</small></div>
+                  <div class="sc-label">营收 -22%</div>
+                </div>
+                <div>
+                  <div class="sc-num">18.7<small>%</small></div>
+                  <div class="sc-label">毛利率</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 产品时间线 -->
+          <div class="product-timeline">
+            <div class="pt-label">Product Timeline · 产品里程碑</div>
+            <div class="pt-line">
+              <span class="pt-pill"><strong>ONE</strong>19.4</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill"><strong>L9</strong>22.6</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill"><strong>L8</strong>22.10</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill key"><strong>L7</strong>23.2</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill crisis"><strong>MEGA</strong>24.3</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill"><strong>L6</strong>24.4</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill"><strong>i8/i6</strong>25.7/9</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill key"><strong>Livis</strong>25.12</span>
+              <span class="pt-arrow">›</span>
+              <span class="pt-pill key"><strong>L9 Livis</strong>26.4/5</span>
+            </div>
+          </div>
+
+          <!-- 销量曲线 -->
+          <div class="sales-chart">
+            <div class="pt-label">Annual Delivery · 历年交付（万辆）</div>
+            <div class="line-chart">
+              <svg class="lc-svg" viewBox="0 0 600 72" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="30,67 138,59 246,52 354,18 462,8 570,24" fill="none" stroke="#1F4A2C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="30,67 138,59 246,52 354,18 462,8 570,24" fill="none" stroke="rgba(31,74,44,0.12)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="30" cy="67" r="4" fill="#0A0A0A"/><circle cx="138" cy="59" r="4" fill="#0A0A0A"/><circle cx="246" cy="52" r="4" fill="#0A0A0A"/>
+                <circle cx="354" cy="18" r="5" fill="#1F4A2C"/><circle cx="462" cy="8" r="5" fill="#1F4A2C"/><circle cx="570" cy="24" r="5" fill="#7A756D"/>
+              </svg>
+              <div class="lc-labels">
+                <div class="lc-label"><strong>3.2</strong>2020</div>
+                <div class="lc-label"><strong>9.0</strong>2021</div>
+                <div class="lc-label"><strong>13.3</strong>2022</div>
+                <div class="lc-label"><strong>37.6</strong>2023</div>
+                <div class="lc-label"><strong>50.1</strong>2024</div>
+                <div class="lc-label"><strong>40.6</strong>2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="summary-strip">
+        <div class="strip-label">
+          <span class="strip-key">1 + N + 2X</span>
+          理想的 KOX 运转体系（11 年长跑的产物）
+        </div>
+        <div class="strip-mini-chips">
+          <span class="strip-mini-chip">蓝V</span>
+          <span class="strip-arrow">+</span>
+          <span class="strip-mini-chip">KOB</span>
+          <span class="strip-mini-chip">KOL</span>
+          <span class="strip-mini-chip">KOE</span>
+          <span class="strip-mini-chip">KOC</span>
+          <span class="strip-arrow">+</span>
+          <span class="strip-mini-chip">KOS</span>
+          <span class="strip-mini-chip">DLR</span>
+        </div>
+        <div class="strip-hint">后面看它如何自然浮现 →</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P05 时间长河读图 ════ -->
+  <section class="slide p05" data-chapter="P 05 · 时间长河读图">
+    <div class="slide-head">
+      <div class="eyebrow">P 05 · 如何看接下来的 4 个周期</div>
+      <h1 class="h-display">固定同一张镜头，<br>看见<span class="accent-green">变化</span>，也看见<span class="accent-green">沉积</span>。</h1>
+    </div>
+
+    <div class="slide-body">
+      <div class="river-board">
+        <div class="river-layers">
+          <div></div>
+          <div class="river-head">2015-2019</div>
+          <div class="river-head">2020-2022</div>
+          <div class="river-head">2023</div>
+          <div class="river-head">2024-2025</div>
+          <div class="river-head">RESULT</div>
+
+          <div class="river-label ext-label">External</div>
+          <div class="river-cell ext"><div class="rc-title">窗口未开</div><div class="rc-desc">渗透率低 · 平台未成熟 · 合资燃油主导</div></div>
+          <div class="river-cell ext"><div class="rc-title">平台红利</div><div class="rc-desc">B 站顶点 · 抖音成熟 · 小红书 KFS 起步</div></div>
+          <div class="river-cell ext crown"><div class="rc-title">五事同发</div><div class="rc-desc">补贴退出 · 30 万+ SUV 打开 · 问界攻击</div></div>
+          <div class="river-cell ext"><div class="rc-title">风暴加剧</div><div class="rc-desc">价格战白热化 · 小米重写 KOX · 增程竞品加码</div></div>
+          <div class="river-cell result"><div class="rc-title">1+N+2X</div><div class="rc-desc">不是预设图纸，而是三层河道里留下来的节点自然汇聚。</div></div>
+
+          <div class="river-label battle-label">Battle</div>
+          <div class="river-cell battle"><div class="rc-title">KOB / KOC 种子</div><div class="rc-desc">李想个人输出 · 用户社区雏形</div></div>
+          <div class="river-cell battle"><div class="rc-title">蓝V / KOB+ 长出</div><div class="rc-desc">自有账号矩阵 · 高管 IP 团开始连线</div></div>
+          <div class="river-cell battle crown"><div class="rc-title">KOX 体系成型</div><div class="rc-desc">KOL/KOE/KOS/DLR 接入，营销动作第一次连成完整系统</div></div>
+          <div class="river-cell battle"><div class="rc-title">长期能力过筛</div><div class="rc-desc">成熟节点继续发力，阶段性应对接受筛选</div></div>
+
+          <div class="river-label int-label">Internal</div>
+          <div class="river-cell int"><div class="rc-title">产品转向</div><div class="rc-desc">SEV 失败 → 增程家庭 SUV · 创业团队</div></div>
+          <div class="river-cell int"><div class="rc-title">流程建设</div><div class="rc-desc">L9/L8 起势 · 学华为 · OKR / IPMS 起步</div></div>
+          <div class="river-cell int crown"><div class="rc-title">能力就位</div><div class="rc-desc">L7/L8/L9 + 品牌部 10 个一级模块 + KOS 在销售部</div></div>
+          <div class="river-cell int"><div class="rc-title">组织受检验</div><div class="rc-desc">MEGA 复盘 · L6 救场 · 回到创业模式</div></div>
+        </div>
+
+        <div class="reading-grammar">
+          <div class="grammar-card">
+            <div class="gc-label">External</div>
+            <div class="gc-title">外部环境</div>
+            <div class="gc-desc">宏观需求、平台生态、竞争格局。不是品牌能控制的，但决定窗口是否打开。</div>
+          </div>
+          <div class="grammar-card">
+            <div class="gc-label">Battle</div>
+            <div class="gc-title">营销博弈动作</div>
+            <div class="gc-desc">每个周期出现的应对手段。我们关心它是留下、淡出，还是刚刚新生。</div>
+          </div>
+          <div class="grammar-card">
+            <div class="gc-label">Internal</div>
+            <div class="gc-title">内部能力</div>
+            <div class="gc-desc">产品/品牌、组织/流程、数据/运营。窗口到来前，能力要先搭好。</div>
+          </div>
+        </div>
+
+        <div class="fate-legend">
+          <span><span class="fate-dot faded"></span>浅灰：阶段应对</span>
+          <span><span class="fate-dot seed"></span>浅绿：长期措施第一次出现</span>
+          <span><span class="fate-dot new"></span>深绿：长期措施加深</span>
+          <span><span class="fate-dot retained"></span>黑色：成熟为体系能力</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P06 早期 2015-2019 ════ -->
+  <section class="slide" data-chapter="P 06 · 早期 2015-2019">
+    <div class="slide-head">
+      <div class="ph-head-row">
+        <div class="ph-head-left">
+          <div class="ph-num-line">
+            <span class="ph-num">PHASE 01</span>
+            <span class="ph-year">2015–2019</span>
+          </div>
+          <div class="ph-title">早期 · 种子埋下</div>
+        </div>
+        <div class="ph-head-right">
+          SEV 失败 → 增程豪华家庭 SUV<br>
+          <em class="hl">KOB · 车垂 KOL · KOC 三颗种子在这阶段埋下</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-body">
+      <div class="ph-stack">
+        <!-- 外部 -->
+        <div class="ph-context-band ext">
+          <div class="ctx-label">External · 外部环境</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">A · 宏观（选车需求）</div><div class="cc-content">渗透率 1% → 4.5% · 补贴退坡启动 · 二孩政策 16<br>家庭增程品类<strong>未被识别</strong></div></div>
+            <div class="ctx-cell"><div class="cc-name">B · 平台</div><div class="cc-content"><strong>微博 = 汽车公关主战场</strong><br>抖音刚起步 · 小红书未涉车 · B 站汽车区未成型</div></div>
+            <div class="ctx-cell"><div class="cc-name">C · 竞争</div><div class="cc-content">蔚来 17.11 NIO House · 小鹏 14 成立<br>问界未入场 · 合资燃油主导</div></div>
+          </div>
+        </div>
+
+        <!-- 博弈动作 -->
+        <div class="ph-puzzle-zone">
+          <div class="ph-puzzle-head">
+            <div class="pp-label">Battle · 当期长出的动作节点</div>
+            <div class="pp-counter"><strong>3</strong> 个长期种子</div>
+          </div>
+          <div class="battle-field">
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">LAUNCH</div><div class="bn-name">18.10.18 首次亮相</div><div class="bn-desc">理想智造 ONE 发布 · 低预算换首批声量</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOB</div><div class="bn-name">李想个人 IP</div><div class="bn-desc">微博高频输出 · 汽车圈头部 KOL</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOL</div><div class="bn-name">朋友式 KOL 背书</div><div class="bn-desc"><span class="bn-highlight">罗永浩“500 万预算选 ONE”</span> · 汽车之家车评生态</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOC</div><div class="bn-name">首批用户口碑</div><div class="bn-desc">早期社区 + 车主分享 · 口碑雏形</div></div>
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">ONE</div><div class="bn-name">单一配置打法</div><div class="bn-desc">32.8 万 · 后续被产品矩阵替代</div></div>
+          </div>
+        </div>
+
+        <!-- 内部 -->
+        <div class="ph-context-band int">
+          <div class="ctx-label">Internal · 内部能力</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">D · 产品 / 品牌</div><div class="cc-content">SEV 失败 → 转向增程 · <strong>理想 ONE 立项</strong><br>家庭定位首次提出</div></div>
+            <div class="ctx-cell"><div class="cc-name">E · 组织 / 流程</div><div class="cc-content">早期创业团队<br>李想本人深度参与决策</div></div>
+            <div class="ctx-cell"><div class="cc-name">F · 数据 / 运营</div><div class="cc-content">尚未数据化<br>凭直觉决策</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="ph-foot-results">
+        <span class="res-item"><span class="res-num">1 万+</span>意向 / 首次亮相（18.10）</span>
+        <span class="res-divider"></span>
+        <span class="res-item"><span class="res-num">1,000+</span>首月交付（19.12）</span>
+        <span class="res-divider"></span>
+        <span class="res-item" style="opacity:.85;">发布造势 → 预订锁单 → 量产交付，是三个不同节点</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P07 转型 2020-2022 ════ -->
+  <section class="slide" data-chapter="P 07 · 转型 2020-2022">
+    <div class="slide-head">
+      <div class="ph-head-row">
+        <div class="ph-head-left">
+          <div class="ph-num-line">
+            <span class="ph-num">PHASE 02</span>
+            <span class="ph-year">2020–2022</span>
+          </div>
+          <div class="ph-title">转型 · 资本就位 + 矩阵起势</div>
+        </div>
+        <div class="ph-head-right">
+          ONE 单车养活公司 + 双重上市 + L9 起势<br>
+          <em class="hl">车垂朋友延续，B 站/科技影像 KOL 开始进入</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-body">
+      <div class="ph-stack">
+        <div class="ph-context-band ext">
+          <div class="ctx-label">External · 外部环境</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">A · 宏观</div><div class="cc-content">渗透率 5.8% → 25.6% · 补贴 22 年底全退<br><strong>中产升级换购显化</strong></div></div>
+            <div class="ctx-cell"><div class="cc-name">B · 平台 ⭐</div><div class="cc-content"><strong>B 站汽车红利顶点</strong>（145 亿播放）<br>抖音星图 + 千川成熟 · 小红书 22 推 KFS · 视频号起量</div></div>
+            <div class="ctx-cell"><div class="cc-name">C · 竞争</div><div class="cc-content">问界 21.12 M5 / 22.7 M7 · 比亚迪 22.4 停燃油<br>蔚来 NIO House 38 家 · 合资 ID./bZ 不及预期</div></div>
+          </div>
+        </div>
+
+        <div class="ph-puzzle-zone">
+          <div class="ph-puzzle-head">
+            <div class="pp-label">Battle · 种子开始连线</div>
+            <div class="pp-counter"><strong>5</strong> 条长期线继续亮</div>
+          </div>
+          <div class="battle-field">
+            <div class="bf-node growing"><div class="bn-state">Deepening</div><div class="bn-code">KOB</div><div class="bn-name">拉进豪华 SUV 讨论场</div><div class="bn-desc">24 个月挑战销冠 · <span class="bn-highlight">L9 借势“500 万以内最好 SUV”</span></div></div>
+            <div class="bf-node growing"><div class="bn-state">Deepening</div><div class="bn-code">KOC</div><div class="bn-name">APP 社区深化</div><div class="bn-desc">发布会大量用户涌入 · APP 触发熔断</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">BLUE V</div><div class="bn-name">公域官号矩阵</div><div class="bn-desc">B 站 / 抖音 / 小红书等官方阵地齐备</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOL</div><div class="bn-name">跨圈 KOL 起势</div><div class="bn-desc">B 站 / 科技影像内容进入，不只车垂评测</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOB+</div><div class="bn-name">高管 IP 团</div><div class="bn-desc">沈亚楠 / 范皓宇等多平台发声</div></div>
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">IPO</div><div class="bn-name">上市带来信任背书</div><div class="bn-desc">美股 + 港股上市提高品牌可信度，但不是长期内容体系</div></div>
+          </div>
+        </div>
+
+        <div class="ph-context-band int">
+          <div class="ctx-label">Internal · 内部能力</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">D · 产品 / 品牌</div><div class="cc-content">ONE → L9 / L8 矩阵起 · <strong>L9 上市</strong>（22.6 旗舰 6 座）<br>家庭定位深化</div></div>
+            <div class="ctx-cell"><div class="cc-name">E · 组织 / 流程</div><div class="cc-content"><strong>21 学华为</strong>（IPD/IPMS/DSTE/ISC）<br>品牌部初步搭建</div></div>
+            <div class="ctx-cell"><div class="cc-name">F · 数据 / 运营</div><div class="cc-content">营销数据化建设期<br>OKR 体系起步</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="ph-foot-results">
+        <span class="res-item"><span class="res-num">9 万</span>21 年销 +177%</span>
+        <span class="res-divider"></span>
+        <span class="res-item"><span class="res-num">2400 亿</span>港股市值峰值</span>
+        <span class="res-divider"></span>
+        <span class="res-item" style="opacity:.85;">5 条长期线在亮：KOB · KOC · 蓝V · KOL · KOB+</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P08 主战场 2023 ⭐ ════ -->
+  <section class="slide" data-chapter="P 08 · 主战场 2023 ⭐">
+    <div class="slide-head">
+      <div class="ph-head-row">
+        <div class="ph-head-left">
+          <div class="ph-num-line">
+            <span class="ph-num main">★ PHASE 03 · 主战场</span>
+            <span class="ph-year">2023</span>
+          </div>
+          <div class="ph-title">外部窗口打开，内部能力已经在场</div>
+        </div>
+        <div class="ph-head-right">
+          <em class="hl">2023 不是临时补课，是前几年能力的集中兑现</em><br>
+          年销 376,030 +182% · 首盈利百亿 · 6 月起超 BBA
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-body">
+      <div class="ph-stack">
+        <div class="ph-context-band ext">
+          <div class="ctx-label">External · 外部环境（5 件事同时发生）</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">A · 宏观 / 需求</div><div class="cc-content">01 补贴退出后市场化首年 · 渗透率 31.6%<br>02 <strong>30 万+ SUV +20.5%</strong> · 03 价格战开局</div></div>
+            <div class="ctx-cell"><div class="cc-name">B · 平台生态</div><div class="cc-content">04 平台分化定型：小红书 KFS + KOC/KOS 双轨（<strong>60d vs 15d</strong>）<br>抖音商业化全成熟 · B 站红利结束</div></div>
+            <div class="ctx-cell"><div class="cc-name">C · 竞争格局</div><div class="cc-content">05 <strong>问界 9.12 新 M7 大定 5.5 万</strong> 正面攻击<br>比亚迪 302 万 +62% · 合资仍在三件套</div></div>
+          </div>
+        </div>
+
+        <div class="ph-puzzle-zone">
+          <div class="ph-puzzle-head">
+            <div class="pp-label">Battle · 外部窗口打开，动作集中兑现</div>
+            <div class="pp-counter"><strong>7</strong> 个节点被连成体系</div>
+          </div>
+          <div class="battle-field">
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">BLUE V</div><div class="bn-name">5 平台分兵</div><div class="bn-desc">自有账号独立 · CPM 目标分平台</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOB</div><div class="bn-name">李想个人 IP</div><div class="bn-desc">215 万粉 · 6 月“小作文”议程</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOB+</div><div class="bn-name">高管 IP 团</div><div class="bn-desc">范皓宇 / 汤靖等多点发声</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">KOL/KOE</div><div class="bn-name">达人 + 媒体背书</div><div class="bn-desc">头部跨圈腰尾 · 负面 ≤4%</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOC</div><div class="bn-name">用户共创</div><div class="bn-desc">APP 40 万 DAU · 上千名深度 KOC 向公域平台孵化</div></div>
+            <div class="bf-node seed clickable" onclick="openModal('kosDetail')"><div class="bn-state">First Long-term</div><div class="bn-code">KOS</div><div class="bn-name">销售矩阵启动</div><div class="bn-desc">在销售部 · 军事化 · 业绩挂钩</div></div>
+            <div class="bf-node seed"><div class="bn-state">First Long-term</div><div class="bn-code">DLR</div><div class="bn-name">门店地域承接</div><div class="bn-desc">本地内容 + 本地线索</div></div>
+          </div>
+        </div>
+
+        <div class="ph-context-band int">
+          <div class="ctx-label">Internal · 内部能力（早搭好等到这一年）</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">D · 产品 / 品牌</div><div class="cc-content"><strong>L7/L8/L9 三车矩阵成型</strong><br>"大三居 / 标准三居 / 大两居" 绑定家庭话术</div></div>
+            <div class="ctx-cell clickable" onclick="openModal('orgChart')">
+              <div class="cc-name">E · 组织 ⭐ <span class="clickable-tag">↗ 弹窗</span></div>
+              <div class="cc-content"><strong>品牌部 10 个一级模块 · 直管 CEO</strong><br>业务部门化 · 上下游链条分工 · KOS 在销售部</div>
+            </div>
+            <div class="ctx-cell clickable" onclick="openModal('okrTable')">
+              <div class="cc-name">F · 数据 ⭐ <span class="clickable-tag">↗ 弹窗</span></div>
+              <div class="cc-content"><strong>OKR 精确到平台 CPM / 线索 / CPS</strong><br>IPMS 漏斗成熟 · 品牌直接背业务数字</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="ph-foot-results">
+        <span class="res-item"><span class="res-num">376,030</span>+182% 新势力销冠</span>
+        <span class="res-divider"></span>
+        <span class="res-item"><span class="res-num">百亿+</span>净利（首盈利）</span>
+        <span class="res-divider"></span>
+        <span class="res-item"><span class="res-num">超 BBA</span>30 万+ SUV 销冠</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P09 风暴 2024-2025 ════ -->
+  <section class="slide" data-chapter="P 09 · 风暴 2024-2025">
+    <div class="slide-head">
+      <div class="ph-head-row">
+        <div class="ph-head-left">
+          <div class="ph-num-line">
+            <span class="ph-num">PHASE 04</span>
+            <span class="ph-year">2024–2025</span>
+          </div>
+          <div class="ph-title">风暴 · 长期沉淀穿越考验</div>
+        </div>
+        <div class="ph-head-right">
+          MEGA 翻车 + L6 救场 + 销量失速 · 25.11 回到创业模式<br>
+          <em class="hl">长期节点仍亮 · 阶段动作接受筛选</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-body">
+      <div class="ph-stack">
+        <div class="ph-context-band ext">
+          <div class="ctx-label">External · 外部环境</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">A · 宏观</div><div class="cc-content">渗透率 47% → 50%+ · <strong>增程赛道 +77.5%</strong>（对手加码）<br>价格战白热化 · 2026 购置税减半</div></div>
+            <div class="ctx-cell"><div class="cc-name">B · 平台</div><div class="cc-content">抖音 AI + 直播深化<br>小红书 KOC+KOS 闭环数据化 · 视频号私域闭环</div></div>
+            <div class="ctx-cell"><div class="cc-name">C · 竞争</div><div class="cc-content"><strong>小米 SU7 重新定义 KOX</strong><br>问界 M9 + 鸿蒙智行五界齐发 · 蔚来乐道入家庭腹地</div></div>
+          </div>
+        </div>
+
+        <div class="ph-puzzle-zone storm-battle">
+          <div class="ph-puzzle-head">
+            <div class="pp-label">Battle · 全套 KOX 经历压力测试</div>
+            <div class="pp-counter"><strong>7</strong> 个长期节点继续亮</div>
+          </div>
+          <div class="battle-field">
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">BLUE V</div><div class="bn-name">公域官号矩阵</div><div class="bn-desc">多平台持续发布 · 官方叙事稳定器</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOB</div><div class="bn-name">换平台不换习惯</div><div class="bn-desc">25.7 李想入驻抖音首播</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOB+</div><div class="bn-name">高管长内容复盘</div><div class="bn-desc">范皓宇 + 汤靖 B 站复盘 MEGA</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOL/KOE</div><div class="bn-name">外部背书网络</div><div class="bn-desc">达人 / 媒体继续承担产品解释</div></div>
+            <div class="bf-node mature"><div class="bn-state">Mature</div><div class="bn-code">KOC</div><div class="bn-name">品牌资产仍强</div><div class="bn-desc">J.D. Power NPS 46.4 主流新能源冠军</div></div>
+            <div class="bf-node growing"><div class="bn-state">Deepening</div><div class="bn-code">KOS</div><div class="bn-name">小红书规模化</div><div class="bn-desc">销售内容矩阵持续承接转化</div></div>
+            <div class="bf-node growing"><div class="bn-state">Deepening</div><div class="bn-code">DLR</div><div class="bn-name">门店本地承接</div><div class="bn-desc">本地内容 + 本地线索继续下沉</div></div>
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">MEGA</div><div class="bn-name">高位定价</div><div class="bn-desc">7 周内调价 · 未形成长期打法</div></div>
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">PRICE</div><div class="bn-name">全系降价/退现金</div><div class="bn-desc">危机应对，而非长期护城河</div></div>
+            <div class="bf-node tactical"><div class="bn-state">Stage Response</div><div class="bn-code">STAR</div><div class="bn-name">i 系列年轻化声量</div><div class="bn-desc">25.9 i6 同日官宣易烊千玺 · 破圈触达更年轻人群</div></div>
+          </div>
+        </div>
+
+        <div class="ph-context-band int">
+          <div class="ctx-label">Internal · 内部能力</div>
+          <div class="ctx-cells">
+            <div class="ctx-cell"><div class="cc-name">D · 产品 / 品牌</div><div class="cc-content">家庭 + 增程坚守 · L6 性价比救场（24.4）<br>i 系列纯电启动 · 具身智能升级</div></div>
+            <div class="ctx-cell"><div class="cc-name">E · 组织</div><div class="cc-content">9 部门组织底盘 · KOS 矩阵成熟<br><strong>25.11 回到创业模式</strong>（IPMS 让位）</div></div>
+            <div class="ctx-cell"><div class="cc-name">F · 数据 / 运营</div><div class="cc-content">用户运营数据化（推荐率 KPI）<br>OKR 数据化基础还在</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-foot">
+      <div class="ph-foot-results">
+        <span class="res-item"><span class="res-num">50.05 万</span>24 +33%</span>
+        <span class="res-item"><span class="res-num">40.63 万</span>25 -19%</span>
+        <span class="res-divider"></span>
+        <span class="res-item"><span class="res-num">NPS 46.4</span>新能源主流冠军</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P10 1+N+2X 结果页 ════ -->
+  <section class="slide p09" data-chapter="P 10 · 1+N+2X 矩阵">
+    <div class="slide-head" style="text-align:center;">
+      <div class="eyebrow" style="justify-content:center;">P 10 · 11 年长跑的产物</div>
+      <div class="result-caption">
+        不是先有 KOX 图纸、再按图施工，<br>
+        而是时间长河浮现出理想品牌的 <span class="accent-green">1 + N + 2X</span>。
+      </div>
+    </div>
+
+    <div class="slide-body">
+      <div class="result-frame">
+        <div class="result-puzzle">
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('蓝V', '品牌官号', '议程设置 · 5 平台分兵')"><div class="pp-role">蓝V</div><div class="pp-name">品牌官号</div><div class="pp-detail">议程设置 · 5 平台分兵</div></div>
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('KOB', '创始人 IP', '李想 · 多平台 · 高频高质')"><div class="pp-role">KOB</div><div class="pp-name">创始人 IP</div><div class="pp-detail">李想 · 多平台 · 高频高质</div></div>
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('KOB+', '高管 IP 团', '范皓宇 / 汤靖 等多平台')"><div class="pp-role">KOB+</div><div class="pp-name">高管 IP 团</div><div class="pp-detail">范皓宇 / 汤靖 等多平台</div></div>
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('KOL', '达人长期合作', '头部 + 跨圈 + 腰尾')"><div class="pp-role">KOL</div><div class="pp-name">达人长期合作</div><div class="pp-detail">头部 + 跨圈 + 腰尾</div></div>
+          <div class="puzzle-piece lit"><div class="pp-role">KOE</div><div class="pp-name">公关 + 媒体</div><div class="pp-detail">≤4% 负面 + 深度内容</div></div>
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('KOC', '用户共创', 'APP + UGC + NPS 行业冠军')"><div class="pp-role">KOC</div><div class="pp-name">用户共创</div><div class="pp-detail">APP + UGC + NPS 行业冠军</div></div>
+          <div class="puzzle-piece lit clickable" onclick="openKoxModal('KOS', '销售矩阵', '在销售部 · 军事化 · 飞书')"><div class="pp-role">KOS</div><div class="pp-name">销售矩阵</div><div class="pp-detail">在销售部 · 军事化 · 飞书</div></div>
+          <div class="puzzle-piece lit"><div class="pp-role">DLR</div><div class="pp-name">经销商号</div><div class="pp-detail">地域承接 · 本地获客</div></div>
+        </div>
+
+        <div class="result-tier-tags">
+          <span>1 <small>蓝V · 议程</small></span>
+          <span>N <small>5 个角色 · 内容生态</small></span>
+          <span>2X <small>KOS + 经销商 · 转化端</small></span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P11 道法术器 ════ -->
+  <section class="slide" data-chapter="P 11 · 道法术器">
+    <div class="slide-head">
+      <div class="eyebrow">P 11 · 从理想回到方法论</div>
+      <h1 class="h-display" style="font-size:clamp(28px,3.4vw,48px);">很多车企学 KOX，学到的是<span class="accent-green">术</span>；<br>理想真正跑通的是<span class="accent-green">道法术器</span>。</h1>
+    </div>
+
+    <div class="slide-body">
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div class="tao-grid">
+          <div class="tao-thesis">
+            <div>
+              <div class="tt-label">WHY IT WORKS</div>
+              <div class="tt-question">KOX 不是先问：我要做哪些号？</div>
+              <div class="tt-main">而是先问：<br>谁最值得被相信？</div>
+            </div>
+            <div class="tt-desc">
+              在每一个关键说服场景里，理想都尽量让<strong>最接近真相的人</strong>站出来。<br>
+              <strong>真诚不是人设</strong>，而是缩短用户被说服路径的效率工具。
+            </div>
+          </div>
+
+          <div class="tao-cards">
+            <div class="tao-card highlight">
+              <div class="tc-kicker">DAO · 道</div>
+              <div class="tc-title">营销的本质是说服，真诚是最短路径。</div>
+              <div class="tc-desc">让最接近真相的人，去说最需要被相信的话：创始人说判断，高管说产品，车主说体验，销售说转化现场。</div>
+            </div>
+            <div class="tao-card">
+              <div class="tc-kicker">FA · 法</div>
+              <div class="tc-title">组织和指标，要让真实表达可持续。</div>
+              <div class="tc-desc">CEO / 高管 / 品牌部 / 用户运营 / 销售体系不是各说各话，而是被 OKR、IPMS、直营体系连接起来。</div>
+            </div>
+            <div class="tao-card">
+              <div class="tc-kicker">SHU · 术</div>
+              <div class="tc-title">KOX 是“谁来说”的角色矩阵。</div>
+              <div class="tc-desc">蓝V、KOB、KOB+、KOL、KOE、KOC、KOS、DLR 分别承担议程、解释、背书、口碑、转化和本地承接。</div>
+            </div>
+            <div class="tao-card">
+              <div class="tc-kicker">QI · 器</div>
+              <div class="tc-title">平台、账号、数据和终端只是放大器。</div>
+              <div class="tc-desc">微博、B 站、小红书、抖音、视频号、APP、飞书、门店账号，负责把真实表达规模化，而不是替代真实表达。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tao-close">
+          所以，尴尬的 KOX 往往是只有“术”；真正有效的 KOX，是道法术器全部对齐。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P12 AI 金矿机会 ════ -->
+  <section class="slide" data-chapter="P 12 · AI 金矿机会">
+    <div class="slide-head">
+      <div class="eyebrow">P 12 · 新时代的新机会</div>
+      <h1 class="h-display" style="font-size:clamp(28px,3.3vw,48px);">竞争已经加剧，变量也已经出现：<br><span class="accent-green">AI 会重写 KOX 的人力成本和规模边界。</span></h1>
+    </div>
+
+    <div class="slide-body">
+      <div class="ai-opportunity">
+        <div class="ai-env-stack">
+          <div class="ai-env-card">
+            <div class="aec-label">External 01 · Competition</div>
+            <div class="aec-title">中国汽车营销进入高压竞争。</div>
+            <div class="aec-desc">价格战延续，新能源渗透率破 50%，合资与中国品牌的市场剪刀差仍在扩大；小米、问界、比亚迪都在用新的 KOX 玩法抢占解释权。</div>
+          </div>
+          <div class="ai-env-card">
+            <div class="aec-label">External 02 · Platform</div>
+            <div class="aec-title">平台进入长效经营时代。</div>
+            <div class="aec-desc">抖音直播和 AI 内容深化，小红书成为长效经营阵地，视频号私域闭环成型；车企不能只做一次性 Campaign，要持续生产、持续承接。</div>
+          </div>
+          <div class="ai-env-card">
+            <div class="aec-label">Variable · AI</div>
+            <div class="aec-title">最大变量不是又多一个平台，而是 AI。</div>
+            <div class="aec-desc">AI 让内容生产、素材复用、账号陪跑、门店赋能和线索承接的边际成本下降，过去靠人海堆出来的 KOX 体系，第一次有机会被规模化复制。</div>
+          </div>
+        </div>
+
+        <div class="goldmine-panel">
+          <div>
+            <div class="gm-kicker">THE HIDDEN GOLDMINE</div>
+            <div class="gm-title">你的品牌坐在一座金矿上，<br>已经开始挖了，但<strong>人手不够</strong>。</div>
+            <div class="gm-desc">数百家经销商、数千名销售、数万车主——所有人都知道这是巨大资产。很多品牌也在做，但纯人工经营这套体系，工作量和管理难度极大。</div>
+          </div>
+
+          <div class="gm-stats">
+            <div class="gm-stat"><strong>500+</strong><span>经销商门店<br>等待内容赋能</span></div>
+            <div class="gm-stat"><strong>5,000+</strong><span>一线销售<br>不知道发什么</span></div>
+            <div class="gm-stat"><strong>100,000+</strong><span>真实车主<br>热情待释放</span></div>
+          </div>
+
+          <div class="gm-close">
+            人负责点燃热情，<em>AI 负责降低门槛</em>。<br>
+            金矿不缺意愿，缺的是老手的工具。
+            <br><a class="gm-product-link" href="https://icc-kox.onrender.com/" target="_blank" rel="noopener noreferrer">Open ICC KOX AI Service</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ P13 留白结尾 ════ -->
+  <section class="slide center p12" data-chapter="P 13 · 留白结尾">
+    <div class="slide-body" style="align-items:center;justify-content:center;text-align:center;">
+      <div class="end-quote">
+        理想给我们的启发，不是一套标准答案。<br>
+        而是一种<span class="accent-green">看见营销结果</span>的方法。
+      </div>
+      <div class="end-line">
+        下一步，或许可以把同一套镜头放回大众中国：<br>
+        <span style="margin-top:1.4vh;display:inline-block;color:var(--ink-faint);">一起看外部环境、内部能力，以及真正适合大众的 KOX 博弈界面。</span>
+      </div>
+      <div class="ending-signature">ICC Group 敬呈</div>
+      <div class="ty-source" style="margin:4vh auto 0;">
+        数据来源：理想招股书 / 年报 / 官方公告 · 第一财经 · 21 经济网 · 新浪财经 · 36 氪 · OFweek · 上证报 · 澎湃新闻 · 艾媒咨询 · J.D. Power · 中国质量协会<br>
+        内部数据：理想 2023 Q1 品牌业务 OKR 文件（脱敏 · 仅作方法论分享） · 行业体感：ICC 团队基于行业从业人员交流整理
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ════ Modal ════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-window">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<template id="tmpl-orgChart">
+  <div class="modal-eyebrow">⌥ 弹窗 01 · 组织架构</div>
+  <h2 class="modal-title">理想品牌部真实架构 · <span style="color:var(--accent);">10 个一级模块 · 直管 CEO</span></h2>
+  <div class="modal-body">
+    <div class="org-chart">
+      <div class="org-top">CEO 李想 · 产品与商业群组<small>直管</small></div>
+      <div class="org-arrow">↓</div>
+      <div class="org-brand-node">品牌</div>
+      <div class="org-arrow">↓</div>
+      <div class="org-departments">
+        <div class="org-dept">品牌设计<span class="dept-sub">视觉 / TVC / KV</span></div>
+        <div class="org-dept">品牌体验<span class="dept-sub">发布会 / 车展</span></div>
+        <div class="org-dept">品牌运营<span class="dept-sub">数据看板 / 文化</span></div>
+        <div class="org-dept">内容营销<span class="dept-sub">5 平台分兵</span></div>
+        <div class="org-dept">营销运营<span class="dept-sub">营销项目推进</span></div>
+        <div class="org-dept">用户运营<span class="dept-sub">UGC / NPS</span></div>
+        <div class="org-dept">自有账号<span class="dept-sub">独立成军</span></div>
+        <div class="org-dept">公关<span class="dept-sub">媒体关系</span></div>
+        <div class="org-dept">企业文化<span class="dept-sub">内部文化传播</span></div>
+        <div class="org-dept">策略投放<span class="dept-sub">CPS 直接背</span></div>
+      </div>
+      <div class="org-focus-branches">
+        <div class="org-branch">
+          <div class="org-branch-title">Content Marketing <strong>内容营销下钻</strong></div>
+          <div class="org-subgrid">
+            <div class="org-subitem">平台运营一组</div>
+            <div class="org-subitem">平台运营二组</div>
+            <div class="org-subitem">平台运营三组</div>
+            <div class="org-subitem">平台运营四组</div>
+            <div class="org-subitem">平台运营五组</div>
+          </div>
+        </div>
+        <div class="org-branch">
+          <div class="org-branch-title">User Operation <strong>用户运营下钻</strong></div>
+          <div class="org-subgrid">
+            <div class="org-subitem">车主运营</div>
+            <div class="org-subitem">UGC 运营</div>
+            <div class="org-subitem">传播产品</div>
+            <div class="org-subitem">用户声音</div>
+            <div class="org-subitem">体验管理</div>
+            <div class="org-subitem">用户感知</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--serif-cn);font-weight:700;font-size:18px;margin:2.4vh 0 1.4vh;">★ 4 个反常识设计</h3>
+    <div class="reverse-design">
+      <div class="rd-card">
+        <div class="rd-num">DESIGN 01</div>
+        <div class="rd-title">策略投放在品牌部不在商业部</div>
+        <div class="rd-desc">CPS 直接由品牌部背 · 大多数车企归商业部</div>
+      </div>
+      <div class="rd-card">
+        <div class="rd-num">DESIGN 02</div>
+        <div class="rd-title">内容营销 ≠ 自有账号</div>
+        <div class="rd-desc">两个独立部门：帮达人做内容 vs 自己做内容</div>
+      </div>
+      <div class="rd-card">
+        <div class="rd-num">DESIGN 03</div>
+        <div class="rd-title">文化建设是 KR</div>
+        <div class="rd-desc">"三个自信"传播总量 75 万+ / 内部 NPS 70%</div>
+      </div>
+      <div class="rd-card">
+        <div class="rd-num">DESIGN 04</div>
+        <div class="rd-title">部门按上下游链条分</div>
+        <div class="rd-desc">不是按工作类似性分（同业更常见的方式）</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tmpl-okrTable">
+  <div class="modal-eyebrow">⌥ 弹窗 02 · 2023 品牌业务 OKR</div>
+  <h2 class="modal-title">品牌业务直接背经营结果 · <span style="color:var(--accent);">每个数字都是 KR</span></h2>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--ink-mute);margin-bottom:1vh;">数据来源：理想 2023 品牌业务 OKR 文件（脱敏 · 仅作方法论分享）</p>
+
+    <div class="okr-principles">
+      <div class="okr-principle">
+        <div class="op-num">DESIGN 01</div>
+        <div class="op-text">目标效果要做到竞品圈层第一，成本要做到行业最低。</div>
+      </div>
+      <div class="okr-principle">
+        <div class="op-num">DESIGN 02</div>
+        <div class="op-text">按平台拆目标：双微一抖、视频号、小红书、头条、垂媒、百度各自设指标。</div>
+      </div>
+      <div class="okr-principle">
+        <div class="op-num">DESIGN 03</div>
+        <div class="op-text">不只看曝光，每个平台都要背线索，发布会直接背大定。</div>
+      </div>
+      <div class="okr-principle">
+        <div class="op-num">DESIGN 04</div>
+        <div class="op-text">品牌漏斗指数 + IPMS，把传播、用户、投放全部数据化。</div>
+      </div>
+      <div class="okr-principle">
+        <div class="op-num">DESIGN 05</div>
+        <div class="op-text">部门按上下游业务链条拆分，不按工作类似性拆分。</div>
+      </div>
+    </div>
+
+    <div class="okr-annual">
+      <div class="okr-goal">
+        <div class="og-kicker">Annual O1 · 2023</div>
+        <div class="og-title">品牌漏斗达特斯拉水平，支撑全年 36 万台销量目标。</div>
+        <div class="og-desc">目标不是“做声量”，而是成为家庭首选豪华品牌，并把品牌指标与销售目标直接绑定。</div>
+      </div>
+      <div class="okr-funnel">
+        <div class="okr-funnel-title">Brand Funnel · 从认知到首选的年度目标</div>
+        <div class="okr-funnel-track">
+          <div class="okr-funnel-item"><strong>20.5%</strong><span>无提示提及</span><em>不提醒也能想起理想</em></div>
+          <div class="okr-funnel-item"><strong>85%</strong><span>有提示提及</span><em>提示品类后知道理想</em></div>
+          <div class="okr-funnel-item"><strong>44%</strong><span>熟悉程度</span><em>知道且理解品牌</em></div>
+          <div class="okr-funnel-item"><strong>28%</strong><span>考虑度</span><em>进入购车候选</em></div>
+          <div class="okr-funnel-item"><strong>6.55</strong><span>品牌首选率</span><em>最终首选理想</em></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="okr-section-title">Q1 部门 KR 摘要 · 不是曝光表，是经营表</div>
+    <table class="okr-table">
+      <thead>
+        <tr><th style="width:130px;">部门</th><th>核心 OKR（精简到一句）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="okr-dept">品牌业务整体</td><td class="okr-content">Q1：L7 成功上市，3 月底订单达到 <strong>26,000</strong>；发布会 3 天大定 <strong>8,500</strong>。</td></tr>
+        <tr><td class="okr-dept">品牌设计</td><td class="okr-content">发布会 <strong>苹果水准</strong>；5 支高品质 TVC、75 张 KV、70 张 CGI 图片、30 条 CGI 动效视频。</td></tr>
+        <tr><td class="okr-dept">品牌体验</td><td class="okr-content">L7 发布、closeroom、动态体验满意度均要求 <strong>95%+</strong>；上海车展 3 月底完成执行方案 90%。</td></tr>
+        <tr><td class="okr-dept">品牌运营</td><td class="okr-content">预热 / 发布期全员造势，员工 NPS <strong>75%+</strong>；建立品牌数据看板和数据密级规范。</td></tr>
+        <tr><td class="okr-dept">内容营销</td><td class="okr-content">L7 传播量 <strong>3.6 亿+</strong>，L8 / L9 <strong>2.4 亿+</strong>，影响自然线索 <strong>44,500</strong>；各平台 CPM 挑战行业最低。</td></tr>
+        <tr><td class="okr-dept">用户运营</td><td class="okr-content">交付用户 NPS <strong>75%+</strong>；APP 维持 <strong>20 万 DAU</strong>；三方平台传播 <strong>4,500 万</strong>，线索 <strong>1,600</strong>。</td></tr>
+        <tr><td class="okr-dept">自有账号</td><td class="okr-content">官方账号传播量 <strong>2.7 亿</strong>；微博 2.35 亿阅读，抖音 2058 万播放，线索 <strong>9,000</strong>。</td></tr>
+        <tr><td class="okr-dept">公关</td><td class="okr-content">敏感舆情内容量占比 <strong>&lt;4%</strong>；L7 试驾传播 3000 万，出刊正面率 <strong>95%+</strong>，核心渗透率 <strong>85%+</strong>。</td></tr>
+        <tr><td class="okr-dept">策略投放</td><td class="okr-content">线索直发销售，CPS 懂车帝降到 <strong>4,000</strong>、易车 <strong>6,000</strong>；整体转化率提升 <strong>10%</strong>。</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;color:var(--ink-soft);margin-top:1vh;line-height:1.7;">→ 每个部门都有<strong>独立 KR</strong>，但所有 KR 共同支撑顶层目标：<strong>订单、线索、品牌漏斗和营销效率</strong>。</p>
+    <p style="font-size:13px;color:var(--ink-soft);margin-top:0.8vh;line-height:1.7;">→ 这也是理想 KOX 能跑起来的前提：内容营销制造外部讨论，自有账号放大官方叙事，用户运营沉淀口碑，公关守舆情，策略投放负责 CPS，最后全部回到 IPMS 漏斗。</p>
+  </div>
+</template>
+
+<template id="tmpl-kosDetail">
+  <div class="modal-eyebrow">⌥ 弹窗 03 · KOS 军事化管理</div>
+  <h2 class="modal-title">KOS = 销售顾问做内容 · <span style="color:var(--accent);">在销售部不在品牌部</span></h2>
+  <div class="modal-body">
+    <div class="kos-detail">
+      <div class="kos-card">
+        <div class="kc-num">FACT 01 · 启动</div>
+        <div class="kc-title">2023 年上半年</div>
+        <div class="kc-desc">23 年初理想已在招聘平台<strong>大规模招直播专家</strong>。具体启动月份为内部信息。<br>2024.2 腾讯新闻报道是 KOS 模式从行业内已知<strong>外溢到大众视野</strong>的标志，不是启动节点。</div>
+      </div>
+      <div class="kos-card">
+        <div class="kc-num">FACT 02 · 归属</div>
+        <div class="kc-title">销售部下零售市场部</div>
+        <div class="kc-desc">不归品牌部、不归市场部——这是<strong>关键反常识设计</strong>。<br>归销售部 → KOS 的 KPI 直接和销量挂钩 → 军事化执行力。</div>
+      </div>
+      <div class="kos-card">
+        <div class="kc-num">FACT 03 · 权力结构</div>
+        <div class="kc-title">直营战区 + 城市中心门店</div>
+        <div class="kc-desc">理想当时是<strong>全直营模式</strong>，按销售战区管理，门店多在城市中心商超。<br>相比郊区经销商体系，总部对门店的控制权更强，这是快速推行 KOS / DLR 的组织基础。</div>
+      </div>
+      <div class="kos-card">
+        <div class="kc-num">FACT 04 · 人员结构</div>
+        <div class="kc-title">销售顾问天然带新媒体能力</div>
+        <div class="kc-desc">品牌非常看重新媒体，门店招聘会倾向年轻、懂内容运营的人。<br>销售不只是“卖车的人”，而是能在抖音、小红书、视频号等平台发声的一线内容节点。</div>
+      </div>
+      <div class="kos-card">
+        <div class="kc-num">FACT 05 · 激励</div>
+        <div class="kc-title">业绩挂钩 + 提成结构</div>
+        <div class="kc-desc">销售提成 L7 / L8 / L9 = <strong>700 / 800 / 900</strong> 元（来源：腾讯新闻 24.2.27 报道）<br>+ 内容流量奖金 + 转化奖金 → 多重激励叠加。</div>
+      </div>
+      <div class="kos-card">
+        <div class="kc-num">FACT 06 · 协同</div>
+        <div class="kc-title">飞书 + OKR 系统化</div>
+        <div class="kc-desc">飞书系统拉通：内容方向 / Brief / 审核 / 复盘<br>+ OKR 看板实时监控每个 KOS 的产能 + 转化 + 流量。</div>
+      </div>
+    </div>
+
+    <div class="kos-quote">
+      → 大多数车企把新媒体当市场部工具，销售只负责成交。<br>
+      → 理想把 KOS 放进直营销售体系，KOS 就变成<strong>总部可指挥的一线内容网络</strong>——这是别人很难学的权力结构 + 人才结构。
+    </div>
+
+    <div class="kos-proof">
+      <div class="kp-label">Proof · 2024 KOS 数据快照</div>
+      <img src="assets/理想24年KOS数据快照.png" alt="理想 2024 年 KOS 数据快照">
+    </div>
+  </div>
+</template>
+
+<script>
+  const deck = document.getElementById('deck');
+  const cur = document.getElementById('cur');
+  const chapterLabel = document.getElementById('chapterLabel');
+  const slides = document.querySelectorAll('.slide');
+  const menuToggle = document.getElementById('menuToggle');
+  const slideMenu = document.getElementById('slideMenu');
+
+  slides.forEach((slide, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = `<span class="sm-num">${String(idx + 1).padStart(2, '0')}</span><span class="sm-title">${slide.getAttribute('data-chapter') || 'Untitled'}</span>`;
+    btn.addEventListener('click', () => {
+      deck.scrollTo({ top: idx * window.innerHeight, behavior: 'smooth' });
+      slideMenu.classList.remove('show');
+    });
+    slideMenu.appendChild(btn);
+  });
+
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    slideMenu.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!slideMenu.contains(e.target) && e.target !== menuToggle) {
+      slideMenu.classList.remove('show');
+    }
+  });
+
+  function updateProgress() {
+    const idx = Math.round(deck.scrollTop / window.innerHeight);
+    if (idx >= 0 && idx < slides.length) {
+      cur.textContent = String(idx + 1).padStart(2, '0');
+      const slide = slides[idx];
+      const ch = slide.getAttribute('data-chapter') || '';
+      chapterLabel.textContent = ch;
+    }
+  }
+  deck.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalContent = document.getElementById('modalContent');
+  function openModal(name) {
+    const tmpl = document.getElementById('tmpl-' + name);
+    if (!tmpl) return;
+    modalContent.innerHTML = tmpl.innerHTML;
+    modalOverlay.classList.add('show');
+  }
+  const koxProofs = {
+    '蓝V': [
+      {
+        src: 'assets/官号-B站.png',
+        alt: '理想汽车 B 站官方账号截图',
+        caption: 'B 站官号持续经营，承接官方内容与新品传播'
+      },
+      {
+        src: 'assets/官号-slogan变化.png',
+        alt: '理想汽车官号 slogan 变化截图',
+        caption: 'Slogan 变化更有具身智能的生命感，也首次拓宽用户范围，不再强调“奶爸感”'
+      }
+    ],
+    KOB: [
+      {
+        src: 'assets/理想参加罗永浩视频播客截图.png',
+        alt: '李想参加罗永浩视频播客截图',
+        caption: '25 年 8 月参加《罗永浩的十字路口》视频播客'
+      },
+      {
+        src: 'assets/李想-请救人车主吃饭.png',
+        alt: '李想请见义勇为车主吃饭',
+        caption: '26 年 2 月请见义勇为车主吃饭'
+      },
+      {
+        src: 'assets/李想本人AI视频-北京车展预热.png',
+        alt: '李想本人 AI 视频预热北京车展 Livis',
+        caption: '26 年 4 月 AIGC 创意视频预热北京车展 Livis'
+      },
+      {
+        src: 'assets/李想26年5月1号入驻视频号.png',
+        alt: '李想 2026 年 5 月 1 日入驻视频号',
+        caption: '26 年 5 月开设个人视频号'
+      }
+    ],
+    'KOB+': [
+      {
+        src: 'assets/高管团-活人小红书.jpg',
+        alt: '理想高管团小红书活人化表达截图',
+        caption: '高管团在小红书进行更生活化、人格化的产品表达'
+      },
+      {
+        src: 'assets/高管团-微博活人.png',
+        alt: '理想高管团微博活人化表达截图',
+        caption: '微博上继续承担公共议题回应和高管个人表达'
+      },
+      {
+        src: 'assets/26年范皓宇koji十字路口视频播客.png',
+        alt: '2026 年范皓宇和 Koji 参加十字路口视频播客截图',
+        caption: '26 年范皓宇 / Koji 进入视频播客，用长内容解释产品与组织思考'
+      }
+    ],
+    KOC: [
+      {
+        src: 'assets/KOC.jpg',
+        alt: '理想 KOC 用户共创截图',
+        caption: '车主内容继续从用户真实体验出发，为品牌口碑和产品信任背书'
+      },
+      {
+        src: 'assets/KOC-面对面.png',
+        alt: '理想 KOC 车主与高管面对面对谈截图',
+        caption: '车主与两位高管在 B 站坦诚复盘产品失败与抢救过程 · <a href="https://www.bilibili.com/video/BV1DMMuz7EDs/?spm_id_from=333.1387.homepage.video_card.click&vd_source=953e74cb965ed834838fbc80ab9ea645" target="_blank" rel="noopener noreferrer">打开视频</a>'
+      }
+    ],
+    KOS: [
+      {
+        src: 'assets/KOS.jpg',
+        alt: '理想 KOS 销售内容矩阵截图',
+        caption: '销售顾问持续在公域平台做内容，把产品解释和线索承接前置'
+      }
+    ]
+  };
+  const koxLeads = {
+    '蓝V': '品牌官号矩阵持续承担平台阵地和官方叙事更新：一方面稳定分发新品内容，另一方面通过 slogan 和账号表达，把理想从“家庭奶爸车”推向更宽的人群与更具生命感的智能叙事。',
+    KOB: '李想本人 IP 持续在线，并在视频播客、用户事件、AIGC 内容和视频号之间切换场域，继续承担新品预热、价值观表达和危机后的信任修复。',
+    'KOB+': '高管 IP 团继续从“产品解释者”变成“品牌活人化节点”：在小红书、微博和视频播客里，用个人表达补足官方叙事的温度和可信度。',
+    KOL: '理想的付费 KOL 合作并不只押注“专业说车”。因为专业产品解释、用户口碑和销售转化已经由 KOB / KOB+ / KOC / KOS 等模块共同承担，KOL 反而可以承担更跨界的人群触达任务。',
+    KOC: 'KOC 仍然是理想最重要的口碑资产：真实车主内容不只负责种草，也开始参与产品复盘和信任修复，让用户共创进入更坦诚的对话场。',
+    KOS: 'KOS 继续把销售一线前置到内容场：销售顾问不只在门店成交，也在小红书、抖音等平台完成种草、解释和线索承接。'
+  };
+  const kolStats = [
+    ['汽车', 109],
+    ['科技数码', 21],
+    ['生活', 9],
+    ['影视娱乐', 9],
+    ['剧情搞笑', 9],
+    ['测评/科技数码', 5],
+    ['美食', 5],
+    ['母婴亲子', 5],
+    ['财经投资', 4],
+    ['二次元', 4],
+    ['运动健身', 3],
+    ['旅行', 2],
+    ['其他 / 混合类型', 16]
+  ];
+
+  function renderKolModal(code, title, roleDesc) {
+    const max = Math.max(...kolStats.map(([, count]) => count));
+    const bars = kolStats.map(([label, count]) => `
+      <div class="kol-bar">
+        <div class="kol-bar-label">${label}</div>
+        <div class="kol-bar-track"><div class="kol-bar-fill" style="width:${Math.max((count / max) * 100, 3)}%;"></div></div>
+        <div class="kol-bar-count">${count}</div>
+      </div>
+    `).join('');
+    modalContent.innerHTML = `
+      <div class="modal-eyebrow">⌥ P10 · KOL 合作结构</div>
+      <h2 class="modal-title">${code} · <span style="color:var(--accent);">${title}</span></h2>
+      <div class="modal-body">
+        <div class="kox-modal-lead"><strong>${code}</strong>${roleDesc}<br>${koxLeads[code]}</div>
+        <div class="kol-chart-wrap">
+          <div class="kol-chart-title">KOL Cooperation Mix · 201 collaborations by creator type</div>
+          ${bars}
+          <div class="kol-insight">
+            <strong>结论：</strong>汽车类仍是基本盘，但理想的 KOL 合作已经明显外溢到科技数码、生活、影视娱乐、剧情搞笑、母婴亲子等圈层。专业说车不必全部靠付费 KOL 完成，KOX 其他模块已经能分担产品解释和转化，KOL 因此可以更多承担跨界破圈。
+          </div>
+        </div>
+      </div>
+    `;
+    modalOverlay.classList.add('show');
+  }
+
+  function renderKoxProofSlot(code, proof, index) {
+    if (proof) {
+      return `<div class="kox-proof-slot"><img src="${proof.src}" alt="${proof.alt}"><div class="kox-proof-caption"><strong>${String(index + 1).padStart(2, '0')}</strong>${proof.caption || proof.alt}</div></div>`;
+    }
+    return `
+      <div class="kox-proof-slot">
+        <div class="kox-proof-placeholder">
+          <div class="kp-code">${code} · Screenshot ${String(index + 1).padStart(2, '0')}</div>
+          <div class="kp-desc">${index === 0 ? '这里放 2026 年当前落地截图：账号主页、内容案例、平台页面或传播数据。' : '可选补充第二张截图：不同平台、不同角色或转化端证据。'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function openKoxModal(code, title, roleDesc) {
+    if (code === 'KOL') {
+      renderKolModal(code, title, roleDesc);
+      return;
+    }
+    const proofs = koxProofs[code] || [];
+    const leadText = koxLeads[code] || `用 2026 年的真实截图证明：这个 KOX 节点今天仍在被使用。`;
+    const proofSlots = proofs.length
+      ? proofs.map((proof, index) => renderKoxProofSlot(code, proof, index)).join('')
+      : [0, 1].map((_, index) => renderKoxProofSlot(code, null, index)).join('');
+    modalContent.innerHTML = `
+      <div class="modal-eyebrow">⌥ P10 · 2026 当前落地截图</div>
+      <h2 class="modal-title">${code} · <span style="color:var(--accent);">${title}</span></h2>
+      <div class="modal-body">
+        <div class="kox-modal-lead"><strong>${code}</strong>${roleDesc}<br>${leadText}</div>
+        <div class="kox-proof-grid ${proofs.length === 1 ? 'single-proof' : ''}">
+          ${proofSlots}
+        </div>
+      </div>
+    `;
+    modalOverlay.classList.add('show');
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('show');
+    modalContent.innerHTML = '';
+  }
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (modalOverlay.classList.contains('show')) {
+      if (e.key === 'Escape') closeModal();
+      return;
+    }
+    const idx = Math.round(deck.scrollTop / window.innerHeight);
+    if (['ArrowDown', 'PageDown', ' '].includes(e.key)) {
+      e.preventDefault();
+      deck.scrollTo({ top: (idx + 1) * window.innerHeight, behavior: 'smooth' });
+    } else if (['ArrowUp', 'PageUp'].includes(e.key)) {
+      e.preventDefault();
+      deck.scrollTo({ top: (idx - 1) * window.innerHeight, behavior: 'smooth' });
+    } else if (e.key === 'Home') {
+      deck.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (e.key === 'End') {
+      deck.scrollTo({ top: slides.length * window.innerHeight, behavior: 'smooth' });
+    }
+  });
+</script>
+
+</body>
+</html>
