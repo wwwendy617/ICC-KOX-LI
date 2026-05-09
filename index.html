@@ -2775,12 +2775,12 @@
           <div class="ctx-label">Internal · 内部能力（早搭好等到这一年）</div>
           <div class="ctx-cells">
             <div class="ctx-cell"><div class="cc-name">D · 产品 / 品牌</div><div class="cc-content"><strong>L7/L8/L9 三车矩阵成型</strong><br>"大三居 / 标准三居 / 大两居" 绑定家庭话术</div></div>
-            <div class="ctx-cell clickable" onclick="openModal('orgChart')">
-              <div class="cc-name">E · 组织 ⭐ <span class="clickable-tag">↗ 弹窗</span></div>
+            <div class="ctx-cell">
+              <div class="cc-name">E · 组织 ⭐</div>
               <div class="cc-content"><strong>品牌部 10 个一级模块 · 直管 CEO</strong><br>业务部门化 · 上下游链条分工 · KOS 在销售部</div>
             </div>
-            <div class="ctx-cell clickable" onclick="openModal('okrTable')">
-              <div class="cc-name">F · 数据 ⭐ <span class="clickable-tag">↗ 弹窗</span></div>
+            <div class="ctx-cell">
+              <div class="cc-name">F · 数据 ⭐</div>
               <div class="cc-content"><strong>OKR 精确到平台 CPM / 线索 / CPS</strong><br>IPMS 漏斗成熟 · 品牌直接背业务数字</div>
             </div>
           </div>
@@ -3033,149 +3033,8 @@
   </div>
 </div>
 
-<template id="tmpl-orgChart">
-  <div class="modal-eyebrow">⌥ 弹窗 01 · 组织架构</div>
-  <h2 class="modal-title">理想品牌部真实架构 · <span style="color:var(--accent);">10 个一级模块 · 直管 CEO</span></h2>
-  <div class="modal-body">
-    <div class="org-chart">
-      <div class="org-top">CEO 李想 · 产品与商业群组<small>直管</small></div>
-      <div class="org-arrow">↓</div>
-      <div class="org-brand-node">品牌</div>
-      <div class="org-arrow">↓</div>
-      <div class="org-departments">
-        <div class="org-dept">品牌设计<span class="dept-sub">视觉 / TVC / KV</span></div>
-        <div class="org-dept">品牌体验<span class="dept-sub">发布会 / 车展</span></div>
-        <div class="org-dept">品牌运营<span class="dept-sub">数据看板 / 文化</span></div>
-        <div class="org-dept">内容营销<span class="dept-sub">5 平台分兵</span></div>
-        <div class="org-dept">营销运营<span class="dept-sub">营销项目推进</span></div>
-        <div class="org-dept">用户运营<span class="dept-sub">UGC / NPS</span></div>
-        <div class="org-dept">自有账号<span class="dept-sub">独立成军</span></div>
-        <div class="org-dept">公关<span class="dept-sub">媒体关系</span></div>
-        <div class="org-dept">企业文化<span class="dept-sub">内部文化传播</span></div>
-        <div class="org-dept">策略投放<span class="dept-sub">CPS 直接背</span></div>
-      </div>
-      <div class="org-focus-branches">
-        <div class="org-branch">
-          <div class="org-branch-title">Content Marketing <strong>内容营销下钻</strong></div>
-          <div class="org-subgrid">
-            <div class="org-subitem">平台运营一组</div>
-            <div class="org-subitem">平台运营二组</div>
-            <div class="org-subitem">平台运营三组</div>
-            <div class="org-subitem">平台运营四组</div>
-            <div class="org-subitem">平台运营五组</div>
-          </div>
-        </div>
-        <div class="org-branch">
-          <div class="org-branch-title">User Operation <strong>用户运营下钻</strong></div>
-          <div class="org-subgrid">
-            <div class="org-subitem">车主运营</div>
-            <div class="org-subitem">UGC 运营</div>
-            <div class="org-subitem">传播产品</div>
-            <div class="org-subitem">用户声音</div>
-            <div class="org-subitem">体验管理</div>
-            <div class="org-subitem">用户感知</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <h3 style="font-family:var(--serif-cn);font-weight:700;font-size:18px;margin:2.4vh 0 1.4vh;">★ 4 个反常识设计</h3>
-    <div class="reverse-design">
-      <div class="rd-card">
-        <div class="rd-num">DESIGN 01</div>
-        <div class="rd-title">策略投放在品牌部不在商业部</div>
-        <div class="rd-desc">CPS 直接由品牌部背 · 大多数车企归商业部</div>
-      </div>
-      <div class="rd-card">
-        <div class="rd-num">DESIGN 02</div>
-        <div class="rd-title">内容营销 ≠ 自有账号</div>
-        <div class="rd-desc">两个独立部门：帮达人做内容 vs 自己做内容</div>
-      </div>
-      <div class="rd-card">
-        <div class="rd-num">DESIGN 03</div>
-        <div class="rd-title">文化建设是 KR</div>
-        <div class="rd-desc">"三个自信"传播总量 75 万+ / 内部 NPS 70%</div>
-      </div>
-      <div class="rd-card">
-        <div class="rd-num">DESIGN 04</div>
-        <div class="rd-title">部门按上下游链条分</div>
-        <div class="rd-desc">不是按工作类似性分（同业更常见的方式）</div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<template id="tmpl-okrTable">
-  <div class="modal-eyebrow">⌥ 弹窗 02 · 2023 品牌业务 OKR</div>
-  <h2 class="modal-title">品牌业务直接背经营结果 · <span style="color:var(--accent);">每个数字都是 KR</span></h2>
-  <div class="modal-body">
-    <p style="font-size:13px;color:var(--ink-mute);margin-bottom:1vh;">数据来源：理想 2023 品牌业务 OKR 文件（脱敏 · 仅作方法论分享）</p>
-
-    <div class="okr-principles">
-      <div class="okr-principle">
-        <div class="op-num">DESIGN 01</div>
-        <div class="op-text">目标效果要做到竞品圈层第一，成本要做到行业最低。</div>
-      </div>
-      <div class="okr-principle">
-        <div class="op-num">DESIGN 02</div>
-        <div class="op-text">按平台拆目标：双微一抖、视频号、小红书、头条、垂媒、百度各自设指标。</div>
-      </div>
-      <div class="okr-principle">
-        <div class="op-num">DESIGN 03</div>
-        <div class="op-text">不只看曝光，每个平台都要背线索，发布会直接背大定。</div>
-      </div>
-      <div class="okr-principle">
-        <div class="op-num">DESIGN 04</div>
-        <div class="op-text">品牌漏斗指数 + IPMS，把传播、用户、投放全部数据化。</div>
-      </div>
-      <div class="okr-principle">
-        <div class="op-num">DESIGN 05</div>
-        <div class="op-text">部门按上下游业务链条拆分，不按工作类似性拆分。</div>
-      </div>
-    </div>
-
-    <div class="okr-annual">
-      <div class="okr-goal">
-        <div class="og-kicker">Annual O1 · 2023</div>
-        <div class="og-title">品牌漏斗达特斯拉水平，支撑全年 36 万台销量目标。</div>
-        <div class="og-desc">目标不是“做声量”，而是成为家庭首选豪华品牌，并把品牌指标与销售目标直接绑定。</div>
-      </div>
-      <div class="okr-funnel">
-        <div class="okr-funnel-title">Brand Funnel · 从认知到首选的年度目标</div>
-        <div class="okr-funnel-track">
-          <div class="okr-funnel-item"><strong>20.5%</strong><span>无提示提及</span><em>不提醒也能想起理想</em></div>
-          <div class="okr-funnel-item"><strong>85%</strong><span>有提示提及</span><em>提示品类后知道理想</em></div>
-          <div class="okr-funnel-item"><strong>44%</strong><span>熟悉程度</span><em>知道且理解品牌</em></div>
-          <div class="okr-funnel-item"><strong>28%</strong><span>考虑度</span><em>进入购车候选</em></div>
-          <div class="okr-funnel-item"><strong>6.55</strong><span>品牌首选率</span><em>最终首选理想</em></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="okr-section-title">Q1 部门 KR 摘要 · 不是曝光表，是经营表</div>
-    <table class="okr-table">
-      <thead>
-        <tr><th style="width:130px;">部门</th><th>核心 OKR（精简到一句）</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="okr-dept">品牌业务整体</td><td class="okr-content">Q1：L7 成功上市，3 月底订单达到 <strong>26,000</strong>；发布会 3 天大定 <strong>8,500</strong>。</td></tr>
-        <tr><td class="okr-dept">品牌设计</td><td class="okr-content">发布会 <strong>苹果水准</strong>；5 支高品质 TVC、75 张 KV、70 张 CGI 图片、30 条 CGI 动效视频。</td></tr>
-        <tr><td class="okr-dept">品牌体验</td><td class="okr-content">L7 发布、closeroom、动态体验满意度均要求 <strong>95%+</strong>；上海车展 3 月底完成执行方案 90%。</td></tr>
-        <tr><td class="okr-dept">品牌运营</td><td class="okr-content">预热 / 发布期全员造势，员工 NPS <strong>75%+</strong>；建立品牌数据看板和数据密级规范。</td></tr>
-        <tr><td class="okr-dept">内容营销</td><td class="okr-content">L7 传播量 <strong>3.6 亿+</strong>，L8 / L9 <strong>2.4 亿+</strong>，影响自然线索 <strong>44,500</strong>；各平台 CPM 挑战行业最低。</td></tr>
-        <tr><td class="okr-dept">用户运营</td><td class="okr-content">交付用户 NPS <strong>75%+</strong>；APP 维持 <strong>20 万 DAU</strong>；三方平台传播 <strong>4,500 万</strong>，线索 <strong>1,600</strong>。</td></tr>
-        <tr><td class="okr-dept">自有账号</td><td class="okr-content">官方账号传播量 <strong>2.7 亿</strong>；微博 2.35 亿阅读，抖音 2058 万播放，线索 <strong>9,000</strong>。</td></tr>
-        <tr><td class="okr-dept">公关</td><td class="okr-content">敏感舆情内容量占比 <strong>&lt;4%</strong>；L7 试驾传播 3000 万，出刊正面率 <strong>95%+</strong>，核心渗透率 <strong>85%+</strong>。</td></tr>
-        <tr><td class="okr-dept">策略投放</td><td class="okr-content">线索直发销售，CPS 懂车帝降到 <strong>4,000</strong>、易车 <strong>6,000</strong>；整体转化率提升 <strong>10%</strong>。</td></tr>
-      </tbody>
-    </table>
-    <p style="font-size:13px;color:var(--ink-soft);margin-top:1vh;line-height:1.7;">→ 每个部门都有<strong>独立 KR</strong>，但所有 KR 共同支撑顶层目标：<strong>订单、线索、品牌漏斗和营销效率</strong>。</p>
-    <p style="font-size:13px;color:var(--ink-soft);margin-top:0.8vh;line-height:1.7;">→ 这也是理想 KOX 能跑起来的前提：内容营销制造外部讨论，自有账号放大官方叙事，用户运营沉淀口碑，公关守舆情，策略投放负责 CPS，最后全部回到 IPMS 漏斗。</p>
-  </div>
-</template>
-
 <template id="tmpl-kosDetail">
-  <div class="modal-eyebrow">⌥ 弹窗 03 · KOS 军事化管理</div>
+  <div class="modal-eyebrow">⌥ KOS 军事化管理</div>
   <h2 class="modal-title">KOS = 销售顾问做内容 · <span style="color:var(--accent);">在销售部不在品牌部</span></h2>
   <div class="modal-body">
     <div class="kos-detail">
@@ -3214,11 +3073,6 @@
     <div class="kos-quote">
       → 大多数车企把新媒体当市场部工具，销售只负责成交。<br>
       → 理想把 KOS 放进直营销售体系，KOS 就变成<strong>总部可指挥的一线内容网络</strong>——这是别人很难学的权力结构 + 人才结构。
-    </div>
-
-    <div class="kos-proof">
-      <div class="kp-label">Proof · 2024 KOS 数据快照</div>
-      <img src="assets/理想24年KOS数据快照.png" alt="理想 2024 年 KOS 数据快照">
     </div>
   </div>
 </template>

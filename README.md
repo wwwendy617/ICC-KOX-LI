@@ -1,6 +1,10 @@
 # 大众中国 KOX × 理想案例 · 演示页
 
-静态站点：`index.html` → `presentation.html`。图片在 `assets/`。
+根目录 `index.html` 即完整演示页；图片在 `assets/`。
+
+**对外公开版（本仓库 `main`）** P08 仅保留 **KOS 弹窗**（文字与 FACT 卡片）；已移除 **组织架构**、**OKR** 两个弹窗及 KOS 弹窗内的 **数据快照图**（`assets/理想24年KOS数据快照.png` 已从仓库删除）。
+
+**对内完整版**：本机 `_internal/` 目录（已 `.gitignore`，不会推送到 GitHub）中有 `index-full.html` + 快照图备份，参见其中 `README.txt`。
 
 ## GitHub + Render
 
